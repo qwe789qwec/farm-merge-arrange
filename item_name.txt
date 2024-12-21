@@ -1,0 +1,23 @@
+-1 none
+0 space
+1 wheat
+6 sugarcane
+11 carrot
+16 soybeans
+21 sunflower
+26 corn
+31 coffee
+36 tomato
+41 avocado
+46 chicken
+51 cow
+56 goat
+61 Pig
+66 sheep
+71 deer
+76 Truffle pig
+
+100 money
+110 gen
+120 wood
+130 stone
