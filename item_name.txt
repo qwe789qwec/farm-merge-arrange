@@ -21,3 +21,5 @@
 110 gen
 120 wood
 130 stone
+
+150 other

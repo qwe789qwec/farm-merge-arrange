@@ -11,21 +11,11 @@ from pathlib import Path
 reader = easyocr.Reader(['en'], gpu = True)
 
 class FMV_handler:
-    def __init__(self, item_dir = 'item_template', size = 9):
+    def __init__(self, item_dir = 'item_template', scan_size = 9):
         pyautogui.PAUSE = 0.1
         self.item_dir = item_dir
         self.init_mouse_position()
         self.init_screen_position()
-        time.sleep(1)
-        matrix = self.scan_slot()
-        fullmap = matrix
-        for i in range(int(size/3)):
-            matrix = self.scan_slot()
-            fullmap = np.concatenate((fullmap, matrix), axis=1)
-            self.go_up()
-
-        print(fullmap)
-
         # 9-17
 
     def init_mouse_position(self):
@@ -62,6 +52,10 @@ class FMV_handler:
         self.scan_init_x, self.scan_init_y = 708, 460
         self.scan_init_x, self.scan_init_y = self.slot_calculator(self.scan_init_x, self.scan_init_y, -8, 0)
 
+        self.game_x = self.gift_x + 10
+        self.game_y = self.gift_y - 80
+        self.game_x, self.game_y = self.slot_calculator(self.game_x, self.game_y, -8, 0)
+
     def init_screen_position(self):
         pyautogui.moveTo(self.gift_x, self.gift_y)
         pyautogui.scroll(-30, x=None, y=None)
@@ -71,12 +65,41 @@ class FMV_handler:
         pyautogui.drag(0, -150, duration=0.1, button='left')
         time.sleep(1.5)
         # pyautogui.drag(0, 40, duration=1, button='left')
+
+    def init_play_position(self):
+        pyautogui.moveTo(self.gift_x, self.gift_y)
+        pyautogui.scroll(-30, x=None, y=None)
+        pyautogui.moveTo(self.drag_x, self.drag_y)
+        pyautogui.drag(0, -150, duration=0.1, button='left')
+        time.sleep(1.5)
+        pyautogui.drag(0, -150, duration=0.1, button='left')
+        time.sleep(1.5)
+        pyautogui.drag(0, 40, duration=0.6, button='left')
+        time.sleep(1.5)
     
-    def go_up(self):
+    def scan_go_up(self):
         pyautogui.moveTo(self.drag_x, self.drag_y)
         time.sleep(0.3)
         pyautogui.mouseDown(button='left')
         pyautogui.move(0, 199, duration=1)
+        time.sleep(0.3)
+        pyautogui.mouseUp(button='left')
+        pyautogui.click()
+    
+    def play_go_up(self):
+        pyautogui.moveTo(self.drag_x, self.drag_y)
+        time.sleep(0.3)
+        pyautogui.mouseDown(button='left')
+        pyautogui.move(0, 330, duration=1)
+        time.sleep(0.3)
+        pyautogui.mouseUp(button='left')
+        pyautogui.click()
+
+    def play_go_down(self):
+        pyautogui.moveTo(self.drag_x, self.drag_y)
+        time.sleep(0.3)
+        pyautogui.mouseDown(button='left')
+        pyautogui.move(0, -330, duration=1)
         time.sleep(0.3)
         pyautogui.mouseUp(button='left')
         pyautogui.click()
@@ -126,7 +149,13 @@ class FMV_handler:
             scan_x, scan_y = self.slot_region(slot_x, slot_y)
             slot_img = self.latest_image[scan_y:scan_y + self.slot_h, scan_x:scan_x + self.slot_w]
             index = self.find_matching_item(slot_img)
-            slot_matrix[16, 2] = index
+            if index > 150:
+                slot_matrix[16, 2] = -1
+            else:
+                slot_matrix[16, 2] = index
+            time.sleep(0.1)
+        else:
+            slot_matrix[16, 2] = -1
             time.sleep(0.1)
         
         for i in range(17*3-1):
@@ -135,11 +164,19 @@ class FMV_handler:
             scan_x, scan_y = self.slot_region(slot_x, slot_y)
             slot_img = self.latest_image[scan_y:scan_y + self.slot_h, scan_x:scan_x + self.slot_w]
             index = self.find_matching_item(slot_img)
-            slot_matrix[col, row] = index
+            if index > 150:
+                slot_matrix[col, row] = -1
+            else:
+                slot_matrix[col, row] = index
             time.sleep(0.1)
 
         return slot_matrix
 
+    def swap_item(self, from_x, from_y, to_x, to_y):
+        pyautogui.moveTo(from_x, from_y)
+        pyautogui.mouseDown(button='left')
+        pyautogui.moveTo(to_x, to_y, duration=1)
+        pyautogui.mouseUp(button='left')
 
     def save_image(self, image, dir):
         if image is None:
@@ -237,36 +274,67 @@ class FMV_handler:
 
         return max(existing_ids) + 1
 
-    def is_game_end(self):
-        template = cv2.imread('end_game_template.png', cv2.IMREAD_COLOR)
-        result = cv2.matchTemplate(self.latest_image, template, cv2.TM_CCOEFF_NORMED)
-        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-
-        # get continue position
-        if max_val > 0.8:  # matching threshold
-            print(f"game end")
-            return True
-        else:
-            # print("no matching window found!")
-            return False
-        
-    def click_slot(self, action):
-        # play game
-        self.save_image(self.latest_image, action)
-        row, col = divmod(action, 6)
-        pyautogui.moveTo(self.game_x + self.slot_gap * col, self.game_y + self.slot_gap * row)
-        pyautogui.click()
-        if action in {2, 3}:
-            time.sleep(5.0)
-        else:
-            time.sleep(1.0)
-
-    def restart_game(self):
-        pyautogui.click(self.end_x, self.end_y)
-        time.sleep(3)
-        pyautogui.click(self.start_x, self.start_y)
-        time.sleep(5)
-
-test = True
+test = False
 if test:
-    game = FMV_handler()
+    size = 9
+    game = FMV_handler(scan_size=size)
+    matrix = game.scan_slot(False)
+    fullmap = matrix
+    for i in range(int((size/3)-1)):
+        game.scan_go_up()
+        matrix = game.scan_slot()
+        item = matrix[16, 2]
+        fullmap[-1, -1] = item
+        fullmap = np.concatenate((fullmap, matrix), axis=1)
+    
+    print(fullmap)
+
+    valid_indices = fullmap != -1
+    valid_values = fullmap[valid_indices]
+    sorted_values = np.sort(valid_values)
+    result = fullmap.copy()
+    result[valid_indices] = sorted_values
+
+    print(result)
+
+    game.init_play_position()
+    width , height = fullmap.shape
+
+
+    print(height, width)
+    print(fullmap[9, 0])
+    print(fullmap[10, 2])
+    rows, cols = matrix.shape
+    for i in range(height):
+        range_cols = range(width) if i % 2 == 0 else range(width - 1, -1, -1)
+        for j in range_cols:
+            item = matrix[i, j]
+            if item == -1:
+                continue
+            
+    for i in range(height):
+        if i % 2 == 0:
+            for j in range(width):
+                print(f"處理元素: {matrix[i, j]} 在位置 ({i}, {j})")
+        else:
+            for j in range(width - 1, -1, -1):
+                print(f"處理元素: {matrix[i, j]} 在位置 ({i}, {j})")
+                
+        if item == -1:
+                continue
+        if item is None:
+            item = fullmap[j, i]
+            if (j + i +1) > 16:
+                to_x, to_y = game.slot_calculator(game.game_x, game.game_y, j, i)
+            continue
+        else:
+            if fullmap[j, i] == item:
+                from_x, from_y = game.slot_calculator(game.game_x, game.game_y, j, i)
+                to_x, to_y = game.slot_calculator(game.game_x, game.game_y, j, i)
+                game.swap_item(from_x, from_y, game.init_slot_x, game.init_slot_y)
+                continue
+        if (j + i) > 16:
+            break
+        move_x, move_y = game.slot_calculator(game.game_x, game.game_y, j, i)
+        pyautogui.moveTo(move_x, move_y)
+        time.sleep(0.3)
