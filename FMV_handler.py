@@ -172,7 +172,7 @@ class FMV_handler:
             scan_x, scan_y = self.slot_region(slot_x, slot_y)
             slot_img = self.latest_image[scan_y:scan_y + self.slot_h, scan_x:scan_x + self.slot_w]
             index = self.find_matching_item(slot_img)
-            if index > 150:
+            if index > 160:
                 slot_matrix[16, 2] = -1
             else:
                 slot_matrix[16, 2] = index
