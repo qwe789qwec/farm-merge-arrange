@@ -91,7 +91,8 @@ class FMV_handler:
         pyautogui.moveTo(self.drag_x, self.drag_y)
         time.sleep(0.3)
         pyautogui.mouseDown(button='left')
-        pyautogui.move(0, 330, duration=1)
+        # pyautogui.move(0, 330, duration=1)
+        pyautogui.move(0, 66, duration=1)
         time.sleep(0.3)
         pyautogui.mouseUp(button='left')
         pyautogui.click()
@@ -305,11 +306,5 @@ test = False
 if test:
     size = 9
     game = FMV_handler(scan_size=size)
-    print("scan position:", game.scan_init_x, game.scan_init_y)
-    game.take_screenshot()
-    game.scan_init_x, game.scan_init_y = game.adjust_position(game.scan_init_x, game.scan_init_y)
-    print("scan position2:", game.scan_init_x, game.scan_init_y)
-    # game_x, game_y = game.slot_calculator(game.game_x, game.game_y, 8, 0)
-    # print("game position:", game_x, game_y)
-    # game_x, game_y = game.adjust_position(game.game_x, game.game_y)
-    # print("game position2:", game_x, game_y)
+    game.init_play_position()
+    game.play_go_up()

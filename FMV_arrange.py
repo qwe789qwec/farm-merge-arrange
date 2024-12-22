@@ -67,3 +67,4 @@ for i in range(height):
                 fullmap[from_i, from_j] = fullmap[next_j, next_i]
                 fullmap[next_j, next_i] = swap_item
                 next_i, next_j = get_next_position(next_i, next_j, height, width)
+    # game.play_go_up()

@@ -22,7 +22,8 @@
 120 wood
 130 stone
 140 key
-145 tool box
+145 box
+147 tool box
 150 house
 
 160 other
