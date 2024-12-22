@@ -1,21 +1,36 @@
-import numpy as np
+def diagonal_snake_traverse(matrix):
+    rows, cols = len(matrix), len(matrix[0])
+    result = []
 
-# 建立一個測試矩陣
-matrix = np.array([
-    [1,  2,  3,  4],
-    [5,  6,  7,  8],
+    for d in range(rows + cols - 1):
+        if d % 2 == 0:
+            # 偶數對角線：從下到上
+            i = min(d, rows - 1)
+            j = d - i
+            while i >= 0 and j < cols:
+                result.append(matrix[i][j])
+                i -= 1
+                j += 1
+        else:
+            # 奇數對角線：從上到下
+            j = min(d, cols - 1)
+            i = d - j
+            while j >= 0 and i < rows:
+                result.append(matrix[i][j])
+                i += 1
+                j -= 1
+
+    return result
+
+# 示例矩陣
+matrix = [
+    [1, 2, 3, 4],
+    [5, 6, 7, 8],
     [9, 10, 11, 12],
     [13, 14, 15, 16]
-])
+]
 
-# 蛇行遍歷
-rows, cols = matrix.shape  # 取得矩陣大小
-result = []
+traversal_result = diagonal_snake_traverse(matrix)
 
-rows, cols = matrix.shape
-for i in range(rows):
-    # 確定當前行的遍歷方向
-    range_cols = range(cols) if i % 2 == 0 else range(cols - 1, -1, -1)
-    for j in range_cols:
-        item = matrix[i, j]
-        print(f"({i}, {j}): {item}")
+print("斜著蛇行的遍歷結果:")
+print(traversal_result)

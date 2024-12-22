@@ -42,7 +42,7 @@ visited = set()
 for i in range(height):
     range_cols = range(width) if i % 2 == 0 else range(width - 1, -1, -1)
     for j in range_cols:
-        if (i + j) > 16:
+        if (i + j) > 17:
             continue
         if fullmap[j, i] == -1:
             continue
@@ -56,13 +56,13 @@ for i in range(height):
                 visited.add((next_j, next_i))
                 continue
             next_x, next_y = game.slot_calculator(game.game_x, game.game_y, next_j, next_i)
-            if (where[0][k], where[1][k]) not in visited and (where[0][k] + where[1][k]) < 16:
+            if (where[0][k], where[1][k]) not in visited and (where[0][k] + where[1][k]) < 17:
                 from_i = where[0][k]
                 from_j = where[1][k]
                 from_x, from_y = game.slot_calculator(game.game_x, game.game_y, from_i, from_j)
                 game.swap_item(from_x, from_y, next_x, next_y)
                 visited.add((next_j, next_i))
-                time.sleep(1)
+                # time.sleep(0.5)
                 swap_item = fullmap[from_i, from_j]
                 fullmap[from_i, from_j] = fullmap[next_j, next_i]
                 fullmap[next_j, next_i] = swap_item

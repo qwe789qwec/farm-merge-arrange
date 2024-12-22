@@ -141,9 +141,31 @@ class FMV_handler:
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         self.latest_image = frame
 
+    def adjust_position(self, x, y):
+        slot_x, slot_y = self.slot_calculator(x, y, 8, 0)
+        scan_x, scan_y = self.slot_region(slot_x, slot_y)
+        slot_img = self.latest_image[scan_y:scan_y + self.slot_h, scan_x:scan_x + self.slot_w]
+        index = self.find_matching_item(slot_img)
+        print("get", index)
+        game_image_gray = cv2.cvtColor(self.latest_image, cv2.COLOR_BGR2GRAY)
+        template_image_path = os.path.join("item_template", str(index), "0.png")
+        template_image = cv2.imread(template_image_path, cv2.IMREAD_GRAYSCALE)
+        method = cv2.TM_CCOEFF_NORMED
+        result = cv2.matchTemplate(game_image_gray, template_image, method)
+        _, _, _, max_loc = cv2.minMaxLoc(result)
+        print("location", max_loc)
+        loc_x, loc_y = max_loc
+        if (loc_x + loc_y) - (scan_x + scan_y) > 150:
+            print("too far")
+            return x, y
+        adj_x, adj_y = self.slot_calculator(int(loc_x + (self.slot_w/2)), int(loc_y + (self.slot_h/2)), -8, 0)
+
+        return adj_x, adj_y
+
     def scan_slot(self, is_scan=True):
         slot_matrix = np.full((17, 3), -1)
         self.take_screenshot()
+        # self.scan_init_x, self.scan_init_y = self.adjust_position(self.scan_init_x, self.scan_init_y)
 
         if is_scan:
             slot_x, slot_y = self.slot_calculator(self.scan_init_x, self.scan_init_y, 16, -1)
@@ -176,7 +198,7 @@ class FMV_handler:
     def swap_item(self, from_x, from_y, to_x, to_y):
         pyautogui.moveTo(from_x, from_y)
         pyautogui.mouseDown(button='left')
-        pyautogui.moveTo(to_x, to_y, duration=1)
+        pyautogui.moveTo(to_x, to_y, duration=0.5)
         pyautogui.mouseUp(button='left')
 
     def save_image(self, image, dir):
@@ -283,29 +305,11 @@ test = False
 if test:
     size = 9
     game = FMV_handler(scan_size=size)
-    matrix = game.scan_slot(False)
-    fullmap = matrix
-    for i in range(int((size/3)-1)):
-        game.scan_go_up()
-        matrix = game.scan_slot()
-        item = matrix[16, 2]
-        fullmap[-1, -1] = item
-        fullmap = np.concatenate((fullmap, matrix), axis=1)
-    
-    print(fullmap)
-
-    # valid_indices = fullmap != -1
-    # valid_values = fullmap[valid_indices]
-    # sorted_values = np.sort(valid_values)
-    # result = fullmap.copy()
-    # result[valid_indices] = sorted_values
-
-    # print(result)
-
-    game.init_play_position()
-    width , height = fullmap.shape
-
-
-    print(height, width)
-    print(fullmap[9, 0])
-    print(fullmap[10, 2])
+    print("scan position:", game.scan_init_x, game.scan_init_y)
+    game.take_screenshot()
+    game.scan_init_x, game.scan_init_y = game.adjust_position(game.scan_init_x, game.scan_init_y)
+    print("scan position2:", game.scan_init_x, game.scan_init_y)
+    # game_x, game_y = game.slot_calculator(game.game_x, game.game_y, 8, 0)
+    # print("game position:", game_x, game_y)
+    # game_x, game_y = game.adjust_position(game.game_x, game.game_y)
+    # print("game position2:", game_x, game_y)
