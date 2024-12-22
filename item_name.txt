@@ -21,5 +21,6 @@
 110 gen
 120 wood
 130 stone
+140 key
 
 150 other

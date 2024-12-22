@@ -54,7 +54,7 @@ class FMV_handler:
         self.scan_init_x, self.scan_init_y = self.slot_calculator(self.scan_init_x, self.scan_init_y, -8, 0)
 
         self.game_x = self.gift_x + 10
-        self.game_y = self.gift_y - 80
+        self.game_y = self.gift_y - 95
         self.game_x, self.game_y = self.slot_calculator(self.game_x, self.game_y, -8, 0)
 
     def init_screen_position(self):
@@ -217,37 +217,6 @@ class FMV_handler:
         self.score = score
         return self.score
     
-    def align_images(self, img1, img2):
-        orb = cv2.ORB_create()
-        keypoints1, descriptors1 = orb.detectAndCompute(img1, None)
-        keypoints2, descriptors2 = orb.detectAndCompute(img2, None)
-
-        # 使用 BFMatcher 進行匹配
-        matcher = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-        matches = matcher.match(descriptors1, descriptors2)
-
-        # 按匹配分數排序
-        matches = sorted(matches, key=lambda x: x.distance)
-
-        # 提取匹配的點
-        points1 = []
-        points2 = []
-        for match in matches[:50]:  # 使用前 50 個最佳匹配點
-            points1.append(keypoints1[match.queryIdx].pt)
-            points2.append(keypoints2[match.trainIdx].pt)
-
-        points1 = np.float32(points1)
-        points2 = np.float32(points2)
-
-        # 計算仿射變換矩陣
-        matrix, mask = cv2.findHomography(points2, points1, cv2.RANSAC, 5.0)
-
-        # 對齊圖像
-        height, width = img1.shape
-        aligned_img = cv2.warpPerspective(img2, matrix, (width, height))
-
-        return aligned_img
-    
     def find_matching_item(self, item_image):
         max_match_value = 0.6
         matching_item_id = None
@@ -264,10 +233,10 @@ class FMV_handler:
                     if template_image is None:
                         continue
                     # align_image = self.align_images(item_image_gray, template_image)
-                    # score, _ = compare_ssim(item_image_gray, template_image, full=True)
-                    method = cv2.TM_CCOEFF_NORMED
-                    result = cv2.matchTemplate(item_image_gray, template_image, method)
-                    _, score, _, _ = cv2.minMaxLoc(result)
+                    score, _ = compare_ssim(item_image_gray, template_image, full=True)
+                    # method = cv2.TM_CCOEFF_NORMED
+                    # result = cv2.matchTemplate(item_image_gray, template_image, method)
+                    # _, score, _, _ = cv2.minMaxLoc(result)
                     
                     if score > max_match_value:
                         max_match_value = score
@@ -309,48 +278,6 @@ class FMV_handler:
             return 0
 
         return max(existing_ids) + 1
-    
-    def rearrange_and_track_swaps(self, matrix):
-        rows, cols = matrix.shape
-        swaps = []  # 用來記錄每一步的交換操作
-
-        # 生成目標矩陣，確保 -1 保持不變，其他數字按大小排列
-        elements = [val for row in matrix for val in row if val != -1]
-        elements.sort()
-        target = np.copy(matrix)  # 初始化目標矩陣為輸入矩陣
-        idx = 0
-        for r in range(rows):
-            for c in range(cols):
-                if target[r, c] != -1:
-                    target[r, c] = elements[idx]
-                    idx += 1
-
-        # 幫助函式：找到當前矩陣中某數字的位置
-        def find_position(matrix, value, exclude_pos=None):
-            for r in range(rows):
-                for c in range(cols):
-                    if matrix[r, c] == value and (exclude_pos is None or (r, c) != exclude_pos):
-                        return r, c
-            return None
-
-        # 執行交換以完成排序
-        for r in range(rows):
-            for c in range(cols):
-                if matrix[r, c] != target[r, c]:
-                    # 找到目標位置中需要的數字
-                    correct_value = target[r, c]
-                    current_pos = find_position(matrix, correct_value)
-
-                    # 確保找到正確位置，並交換
-                    if current_pos:
-                        current_r, current_c = current_pos
-                        swaps.append(((r, c), (current_r, current_c)))
-
-                        # 執行交換
-                        matrix[r, c], matrix[current_r, current_c] = matrix[current_r, current_c], matrix[r, c]
-
-        return matrix, swaps
-
 
 test = False
 if test:

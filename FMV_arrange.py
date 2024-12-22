@@ -4,6 +4,18 @@ import time
 import numpy as np
 import pyautogui
 
+def get_next_position(i, j, height, width):
+    if i % 2 == 0:
+        if j + 1 < width:
+            return i, j + 1
+        else:
+            return i + 1, j
+    else:
+        if j - 1 >= 0:
+            return i, j - 1
+        else:
+            return i + 1, j
+
 game = fmv()
 size = 9
 matrix = game.scan_slot(False)
@@ -24,16 +36,34 @@ print(height, width)
 print(fullmap[9, 0])
 print(fullmap[10, 2])
 
-new_matrix, swaps = game.rearrange_and_track_swaps(fullmap)
-print(new_matrix)
-print(swaps)
-for original_pos, new_pos in swaps:
-    if (original_pos[0] + original_pos[1] + 1 > 16) or (new_pos[0] + new_pos[1] + 1 > 16):
-        continue
-    else:
-        from_x, from_y = game.slot_calculator(game.game_x, game.game_y, original_pos[0], original_pos[1])
-        to_x, to_y = game.slot_calculator(game.game_x, game.game_y, new_pos[0], new_pos[1])
-        # pyautogui.moveTo(from_x, from_y)
-        # pyautogui.moveTo(to_x, to_y)
-        game.swap_item(from_x, from_y, to_x, to_y)
-        time.sleep(3)
+last_i = 0
+last_j = 0
+visited = set()
+for i in range(height):
+    range_cols = range(width) if i % 2 == 0 else range(width - 1, -1, -1)
+    for j in range_cols:
+        if (i + j) > 16:
+            continue
+        if fullmap[j, i] == -1:
+            continue
+        item = fullmap[j, i]
+        where = np.where(fullmap == item)
+        visited.add((j, i))
+
+        for k in range(len(where[0])):
+            next_i, next_j = get_next_position(i, j, height, width)
+            if fullmap[next_j, next_i] == item or fullmap[next_j, next_i] == -1:
+                visited.add((next_j, next_i))
+                continue
+            next_x, next_y = game.slot_calculator(game.game_x, game.game_y, next_j, next_i)
+            if (where[0][k], where[1][k]) not in visited and (where[0][k] + where[1][k]) < 16:
+                from_i = where[0][k]
+                from_j = where[1][k]
+                from_x, from_y = game.slot_calculator(game.game_x, game.game_y, from_i, from_j)
+                game.swap_item(from_x, from_y, next_x, next_y)
+                visited.add((next_j, next_i))
+                time.sleep(1)
+                swap_item = fullmap[from_i, from_j]
+                fullmap[from_i, from_j] = fullmap[next_j, next_i]
+                fullmap[next_j, next_i] = swap_item
+                next_i, next_j = get_next_position(next_i, next_j, height, width)
