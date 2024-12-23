@@ -30,12 +30,6 @@ def get_next_position(x, y):
     
     return next_index[0][0], next_index[0][1]
 
-for row in game.scan_index:
-    print(row)
-
-for row in items:
-    print(row)
-
 game.init_screen_position()
 game.screen_slider(game.slot_gap_y*3)
 play_pos = game.get_play_initial_position()
@@ -63,11 +57,10 @@ for row_index, row in enumerate(items):
             play_next = game.slot_calculator_dia(play_pos, next_col, next_row)
             if (position[0], position[1]) not in visited and position[1] < limit:
                 from_row, from_col = position[0], position[1]
-                print(f"Swapping {from_col}, {from_row} to {next_col}, {next_row}")
                 play_from = game.slot_calculator_dia(play_pos, from_col, from_row)
                 game.swap_item(play_from, play_next)
                 visited.add((next_row, next_col))
-                time.sleep(3)
+                # time.sleep(3)
                 swap_item = items[from_row][from_col]
                 items[from_row][from_col] = items[next_row][next_col]
                 items[next_row][next_col] = swap_item
