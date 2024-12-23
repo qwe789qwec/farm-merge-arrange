@@ -9,6 +9,9 @@ from PIL import Image
 from pathlib import Path
 from collections import namedtuple
 
+slant_distance = 77 # adjust this value
+vertical_distance = 69 # adjust this value
+
 position = namedtuple('position', ['x', 'y'])
 region = namedtuple('region', ['x', 'y', 'w', 'h'])
 size = namedtuple('size', ['w', 'h'])
@@ -46,15 +49,15 @@ class FMV_handler:
         # slot size
         self.item_size = size(45, 50)
         self.slot_size = size(80, 80)
-        self.slot_gap = 74
-        self.slot_gap_y = 66
+        self.slot_gap = slant_distance
+        self.slot_gap_y = vertical_distance
         self.slot_angle = np.arctan(0.33/0.67)
 
         self.scan_go_up = 199
         self.play_go_down = 330
 
         # light (1337, 213) | scan (1243, 223)
-        self.scan_relative_position = position(-94, 10)
+        self.scan_relative_position = position(-90, 10)
         self.play_relative_position = position(0, 0)
 
         self.farm_shape1 = [9, 10, 11, 12, 13, 14, 15, 16, 17]
@@ -91,6 +94,7 @@ class FMV_handler:
         pyautogui.moveTo(self.drag.x, self.drag.y)
         pyautogui.drag(0, -150, duration=0.1, button='left')
         time.sleep(1.5)
+        pyautogui.moveTo(self.drag.x, self.drag.y)
         pyautogui.drag(0, -150, duration=0.1, button='left')
         time.sleep(1.5)
         # pyautogui.drag(0, 40, duration=1, button='left')
@@ -128,10 +132,10 @@ class FMV_handler:
         end = (region.x + region.w, region.y + region.h)
         cv2.rectangle(image, start, end, color, thickness)
         return image
-
-    def scan_slot(self):
-        # slot_matrix = np.full((17, 3), -1)
+    
+    def check_slot(self):
         self.init_screen_position()
+        self.screen_slider(self.slot_gap_y/2)
 
         for i in range(len(self.farm_shape1)):
             light_pos = self.get_item_position(region=self.game_area, item_name='buttons/light.png')
@@ -146,28 +150,39 @@ class FMV_handler:
                 img = self.make_rectangle(img, slot_region)
                 item_region = self.item_region(scan_pos, self.item_size)
                 img = self.make_rectangle(img, item_region)
-            
+
             self.screen_slider(self.slot_gap_y)
             self.save_image(img, "buttons")
 
-        # scan_pos = self.slot_calculator(relative_scan, -16, 0)
-        # slot_region = self.item_region(scan_pos, self.slot_size)
-        # slot_img = game_image[slot_region.y:slot_region.y + self.slot_size.h, slot_region.x:slot_region.x + self.slot_size.w]
-        # self.save_image(slot_img, temp_dir)
-        # item_region = self.item_region(scan_pos, self.item_size)
-        # item_img = game_image[item_region.y:item_region.y + self.item_size.h, item_region.x:item_region.x + self.item_size.w]
-        # self.save_image(item_img, temp_dir)
+    def capture_slot(self):
+        # slot_matrix = np.full((17, 3), -1)
+        self.init_screen_position()
+        self.screen_slider(self.slot_gap_y*0.6)
 
-        # for i in range(17*3-1):
-        #     row, col = divmod(i, 17)
-        #     scan_pos = self.slot_calculator(init_scan, col, row)
-        #     slot_region = self.item_region(scan_pos, self.slot_size)
-        #     slot_img = game_image[slot_region.y:slot_region.y + self.slot_size.h, slot_region.x:slot_region.x + self.slot_size.w]
-        #     self.save_image(slot_img, temp_dir)
-        #     item_region = self.item_region(scan_pos, self.item_size)
-        #     item_img = game_image[item_region.y:item_region.y + self.item_size.h, item_region.x:item_region.x + self.item_size.w]
-        #     self.save_image(item_img, temp_dir)
+        for i in range(len(self.farm_shape1)):
+            light_pos = self.get_item_position(region=self.game_area, item_name='buttons/light.png')
+            relative_scan = position(light_pos.x + self.scan_relative_position.x, light_pos.y + self.scan_relative_position.y)
+            init_scan = self.slot_calculator(relative_scan, -(self.farm_shape1[i] - 1), i)
+            game_image = self.take_screenshot(region=self.game_area)
+
+            for j in range(self.farm_shape1[i]):
+                scan_pos = self.slot_calculator(init_scan, j, 0)
+                slot_region = self.item_region(scan_pos, self.slot_size)
+                slot_img = game_image[slot_region.y:slot_region.y + self.slot_size.h, slot_region.x:slot_region.x + self.slot_size.w]
+                self.save_image(slot_img, temp_dir)
+                item_region = self.item_region(scan_pos, self.item_size)
+                item_img = game_image[item_region.y:item_region.y + self.item_size.h, item_region.x:item_region.x + self.item_size.w]
+                self.save_image(item_img, temp_dir)
+
+            if i < 8:
+                self.screen_slider(self.slot_gap_y)
     
+    def compare_method(self, img1, img2):
+        result = cv2.matchTemplate(img1, img2, cv2.TM_CCOEFF_NORMED)
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+        return max_val
+
+
     def compare_slot_image(self):
         image_id = [
             int(os.path.splitext(image_file)[0])
@@ -176,17 +191,42 @@ class FMV_handler:
         ]
 
         file_number = max(image_id, default=0)
+        if file_number <= 0:
+            raise ValueError("No valid images found in the directory.")
+        threshold = 0.8
+        slot_size = (file_number + 1)//2
+        clusters = np.zeros((slot_size,), dtype=int)
+        scores = np.zeros((slot_size,), dtype=int)
 
-        for i in range(2, file_number, 2):
-            for j in range(3 , file_number, 2):
-                image_path = os.path.join(temp_dir, f"{i}.png")
-                image = cv2.imread(image_path)
-                item_id = self.find_matching_item(image)
-                image_path = os.path.join(temp_dir, f"{j}.png")
-                image = cv2.imread(image_path)
-                item_id = self.find_matching_item(image)
+        for i in range(0, file_number, 2):
+            slot_number = (i)//2
+            if scores[slot_number] == 0:
+                clusters[slot_number] = slot_number
+            for j in range(1 , file_number, 2):
+                item_number = (j-1)//2
+                if slot_number == item_number:
+                    continue
+                slot_image_path = os.path.join(temp_dir, f"{i}.png")
+                slot_image = cv2.imread(slot_image_path)
+                item_image_path = os.path.join(temp_dir, f"{j}.png")
+                item_image = cv2.imread(item_image_path)
+                score = self.compare_method(slot_image, item_image)
 
-        print(image_id)
+                if score > threshold and score > scores[item_number]:
+                    if clusters[slot_number] == item_number:
+                        break
+                    else:
+                        clusters[item_number] = slot_number
+                        scores[item_number] = score
+
+        result = []
+        current_index = 0
+        for i in self.farm_shape1:
+            row = clusters[current_index:current_index + i]
+            result.append(row)
+            current_index += i
+
+        return result
 
     def swap_item(self, from_x, from_y, to_x, to_y):
         pyautogui.moveTo(from_x, from_y)
@@ -282,4 +322,6 @@ if test:
     # scan_pos = game.slot_calculator(init_game, -16, 0)
     # pyautogui.moveTo(scan_pos.x, scan_pos.y)
 
-    game.scan_slot()
+    game.capture_slot()
+    result = game.compare_slot_image()
+    print(result)

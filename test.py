@@ -34,3 +34,24 @@ traversal_result = diagonal_snake_traverse(matrix)
 
 print("斜著蛇行的遍歷結果:")
 print(traversal_result)
+
+import numpy as np
+
+# 設定起始值和行數
+start_value = 9
+rows = 9
+
+# 動態生成矩陣
+matrix = []
+current_value = start_value
+for i in range(rows):
+    row_length = i + 9
+    row = np.arange(current_value, current_value + row_length)
+    matrix.append(row)
+    current_value += row_length
+
+# 打印矩陣
+for row in matrix:
+    print(row)
+
+print(matrix[1][11])
