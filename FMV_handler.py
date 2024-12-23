@@ -38,27 +38,30 @@ class FMV_handler:
         print(f"gift position: ({self.gift.x}, {self.gift.y})")
 
         # game area
-        self.game_area = region(self.gift.x - 700, self.gift.y - 660, 1400, 770)
+        self.game_area = region(self.gift.x - 700, self.gift.y - 600, 1400, 700)
         self.drag = position(self.gift.x + 700, self.gift.y - 300)
     
     def init_parameters(self):
+        # (777, 348) (844, 315) (777, 282)
         # slot size
-        self.item_size = size(60, 50)
-        self.slot_size = size(60, 50)
-        self.slot_gap = 77
-        self.slot_gap_y = 68
-        self.slot_angle = np.arctan(0.34/0.7)
+        self.item_size = size(45, 50)
+        self.slot_size = size(80, 80)
+        self.slot_gap = 74
+        self.slot_gap_y = 66
+        self.slot_angle = np.arctan(0.33/0.67)
 
         self.scan_go_up = 199
-        self.play_go_up = 66
         self.play_go_down = 330
 
-        self.scan_relative_position = position(0, 0)
+        # light (1337, 213) | scan (1243, 223)
+        self.scan_relative_position = position(-94, 10)
         self.play_relative_position = position(0, 0)
 
+        self.farm_shape1 = [9, 10, 11, 12, 13, 14, 15, 16, 17]
+
     def take_screenshot(self, region=None):
-        pyautogui.moveTo(self.drag.x, self.drag.y)
-        pyautogui.click()
+        # pyautogui.moveTo(self.drag.x, self.drag.y)
+        # pyautogui.click()
         screenshot = pyautogui.screenshot()
         frame = np.array(screenshot)
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -66,7 +69,7 @@ class FMV_handler:
             frame = frame[region.y:region.y + region.h, region.x:region.x + region.w]
         return frame
     
-    def get_item_position(self, region=None,item_name='buttons/get_gift.png'):
+    def get_item_position(self, region=None,item_name='buttons/gift_button.png'):
         screenshot = self.take_screenshot(region)
         template = cv2.imread(item_name, cv2.IMREAD_COLOR)
         # size of the template image
@@ -80,7 +83,7 @@ class FMV_handler:
             return position(int(max_loc[0] + h/2), int(max_loc[1] + w/2))
         else:
             print("no matching window found!")
-            return None, None
+            return position(None, None)
         
     def init_screen_position(self):
         pyautogui.moveTo(self.gift.x, self.gift.y)
@@ -113,34 +116,57 @@ class FMV_handler:
         return position(goal_x, goal_y)
     
     def item_region(self, pos, region_size):
-        slot_x = pos.x - (region_size.w / 2)
-        slot_y = pos.y - (region_size.h / 2)
-        region = region(slot_x, slot_y, region_size.w, region_size.h)
-        return region
+        slot_x = int(pos.x - (region_size.w / 2))
+        if region_size.h > 75:
+            slot_y = int(pos.y - ((region_size.h/4) * 3))
+        else:
+            slot_y = int(pos.y - region_size.h + 10)
+        return region(slot_x, slot_y, region_size.w, region_size.h)
+    
+    def make_rectangle(self, image, region, color=(255,0,0), thickness=3):
+        start = (region.x, region.y)
+        end = (region.x + region.w, region.y + region.h)
+        cv2.rectangle(image, start, end, color, thickness)
+        return image
 
     def scan_slot(self):
         # slot_matrix = np.full((17, 3), -1)
-        station_pos = self.get_item_position(region=self.game_area, item_name='buttons/station.png')
-        init_scan = position(station_pos.x + self.scan_relative_position.x, station_pos.y + self.scan_relative_position.y)
-        game_image = self.take_screenshot(region=self.game_area)
+        self.init_screen_position()
 
-        scan_pos = self.slot_calculator(init_scan, 16, -1)
-        slot_region = self.item_region(scan_pos, self.slot_size)
-        slot_img = game_image[slot_region.y:slot_region.y + self.slot_size.h, slot_region.x:slot_region.x + self.slot_size.w]
-        self.save_image(slot_img, temp_dir)
-        item_region = self.item_region(scan_pos, self.item_size)
-        item_img = game_image[item_region.y:item_region.y + self.item_size.h, item_region.x:item_region.x + self.item_size.w]
-        self.save_image(item_img, temp_dir)
+        for i in range(len(self.farm_shape1)):
+            light_pos = self.get_item_position(region=self.game_area, item_name='buttons/light.png')
+            relative_scan = position(light_pos.x + self.scan_relative_position.x, light_pos.y + self.scan_relative_position.y)
+            init_scan = self.slot_calculator(relative_scan, -(self.farm_shape1[i] - 1), i)
+            game_image = self.take_screenshot(region=self.game_area)
+            img = game_image
 
-        for i in range(17*3-1):
-            row, col = divmod(i, 17)
-            scan_pos = self.slot_calculator(init_scan, col, row)
-            slot_region = self.item_region(scan_pos, self.slot_size)
-            slot_img = game_image[slot_region.y:slot_region.y + self.slot_size.h, slot_region.x:slot_region.x + self.slot_size.w]
-            self.save_image(slot_img, temp_dir)
-            item_region = self.item_region(scan_pos, self.item_size)
-            item_img = game_image[item_region.y:item_region.y + self.item_size.h, item_region.x:item_region.x + self.item_size.w]
-            self.save_image(item_img, temp_dir)
+            for j in range(self.farm_shape1[i]):
+                scan_pos = self.slot_calculator(init_scan, j, 0)
+                slot_region = self.item_region(scan_pos, self.slot_size)
+                img = self.make_rectangle(img, slot_region)
+                item_region = self.item_region(scan_pos, self.item_size)
+                img = self.make_rectangle(img, item_region)
+            
+            self.screen_slider(self.slot_gap_y)
+            self.save_image(img, "buttons")
+
+        # scan_pos = self.slot_calculator(relative_scan, -16, 0)
+        # slot_region = self.item_region(scan_pos, self.slot_size)
+        # slot_img = game_image[slot_region.y:slot_region.y + self.slot_size.h, slot_region.x:slot_region.x + self.slot_size.w]
+        # self.save_image(slot_img, temp_dir)
+        # item_region = self.item_region(scan_pos, self.item_size)
+        # item_img = game_image[item_region.y:item_region.y + self.item_size.h, item_region.x:item_region.x + self.item_size.w]
+        # self.save_image(item_img, temp_dir)
+
+        # for i in range(17*3-1):
+        #     row, col = divmod(i, 17)
+        #     scan_pos = self.slot_calculator(init_scan, col, row)
+        #     slot_region = self.item_region(scan_pos, self.slot_size)
+        #     slot_img = game_image[slot_region.y:slot_region.y + self.slot_size.h, slot_region.x:slot_region.x + self.slot_size.w]
+        #     self.save_image(slot_img, temp_dir)
+        #     item_region = self.item_region(scan_pos, self.item_size)
+        #     item_img = game_image[item_region.y:item_region.y + self.item_size.h, item_region.x:item_region.x + self.item_size.w]
+        #     self.save_image(item_img, temp_dir)
     
     def compare_slot_image(self):
         image_id = [
@@ -151,12 +177,14 @@ class FMV_handler:
 
         file_number = max(image_id, default=0)
 
-        for i in range(file_number - 2):
-            i = i + 2
-            image_path = os.path.join(temp_dir, f"{i}.png")
-            image = cv2.imread(image_path)
-            item_id = self.find_matching_item(image)
-            image_id.append(item_id)
+        for i in range(2, file_number, 2):
+            for j in range(3 , file_number, 2):
+                image_path = os.path.join(temp_dir, f"{i}.png")
+                image = cv2.imread(image_path)
+                item_id = self.find_matching_item(image)
+                image_path = os.path.join(temp_dir, f"{j}.png")
+                image = cv2.imread(image_path)
+                item_id = self.find_matching_item(image)
 
         print(image_id)
 
@@ -237,13 +265,21 @@ class FMV_handler:
 
         return max(existing_ids) + 1
     
-    def __exit__(self):
+    def __del__(self):
         shutil.rmtree(temp_dir)
         print(f"Temporary directory deleted: {temp_dir}")
 
-test = False
+test = True
 if test:
-    size = 9
-    game = FMV_handler(scan_size=size)
-    game.init_play_position()
-    game.play_go_up()
+    scna_size = 9
+    game = FMV_handler(scan_size=scna_size)
+    # game.screen_slider(game.slot_gap_y * 1.4)
+    # game.save_image(game.take_screenshot(region=game.game_area), "buttons")
+    # light_pos = game.get_item_position(region=game.game_area, item_name='buttons/light.png')
+    # light_pos = game.get_item_position(region=game.game_area, item_name='buttons/light.png')
+    # print(light_pos)
+    # init_game = position(light_pos.x + game.scan_relative_position.x, light_pos.y + game.scan_relative_position.y)
+    # scan_pos = game.slot_calculator(init_game, -16, 0)
+    # pyautogui.moveTo(scan_pos.x, scan_pos.y)
+
+    game.scan_slot()
