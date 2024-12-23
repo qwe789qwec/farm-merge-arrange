@@ -185,46 +185,54 @@ class FMV_handler:
 
     def compare_slot_image(self):
         image_id = [
-            int(os.path.splitext(image_file)[0])
-            for image_file in os.listdir(temp_dir)
-            if os.path.splitext(image_file)[0].isdigit()
+            int(name)
+            for name in (os.path.splitext(image_file)[0] for image_file in os.listdir(temp_dir))
+            if name.isdigit()
         ]
 
         file_number = max(image_id, default=0)
         if file_number <= 0:
             raise ValueError("No valid images found in the directory.")
+
         threshold = 0.8
-        slot_size = (file_number + 1)//2
+        slot_size = (file_number + 1) // 2
         clusters = np.zeros((slot_size,), dtype=int)
         scores = np.zeros((slot_size,), dtype=int)
 
+        # preloading images
+        images = {int(os.path.splitext(file)[0]): cv2.imread(os.path.join(temp_dir, file))
+                for file in os.listdir(temp_dir)
+                if os.path.splitext(file)[0].isdigit()}
+
         for i in range(0, file_number, 2):
-            slot_number = (i)//2
+            slot_number = i // 2
+            slot_image = images.get(i)
+            if slot_image is None:
+                continue
             if scores[slot_number] == 0:
                 clusters[slot_number] = slot_number
-            for j in range(1 , file_number, 2):
-                item_number = (j-1)//2
+
+            for j in range(1, file_number, 2):
+                item_number = (j - 1) // 2
                 if slot_number == item_number:
                     continue
-                slot_image_path = os.path.join(temp_dir, f"{i}.png")
-                slot_image = cv2.imread(slot_image_path)
-                item_image_path = os.path.join(temp_dir, f"{j}.png")
-                item_image = cv2.imread(item_image_path)
-                score = self.compare_method(slot_image, item_image)
+                item_image = images.get(j)
+                if item_image is None:
+                    continue
 
+                score = self.compare_method(slot_image, item_image)
                 if score > threshold and score > scores[item_number]:
-                    if clusters[slot_number] == item_number:
-                        break
-                    else:
-                        clusters[item_number] = slot_number
-                        scores[item_number] = score
+                    clusters[item_number] = slot_number
+                    scores[item_number] = score
 
         result = []
         current_index = 0
-        for i in self.farm_shape1:
-            row = clusters[current_index:current_index + i]
+        for row_length in self.farm_shape1:
+            if current_index + row_length > len(clusters):
+                raise ValueError("Farm shape exceeds cluster array size.")
+            row = clusters[current_index:current_index + row_length]
             result.append(row)
-            current_index += i
+            current_index += row_length
 
         return result
 
@@ -322,6 +330,6 @@ if test:
     # scan_pos = game.slot_calculator(init_game, -16, 0)
     # pyautogui.moveTo(scan_pos.x, scan_pos.y)
 
+    game.check_slot()
     game.capture_slot()
     result = game.compare_slot_image()
-    print(result)
