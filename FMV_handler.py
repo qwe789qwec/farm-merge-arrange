@@ -128,6 +128,13 @@ class FMV_handler:
         goal_y = int(goal_y - self.slot_gap_y * dir_y)
         return position(goal_x, goal_y)
     
+    def slot_calculator_dia(self, pos, dir_x, dir_y):
+        goal_x = pos.x + self.slot_gap * dir_x * np.cos(self.slot_angle)
+        goal_y = pos.y - self.slot_gap * dir_x * np.sin(self.slot_angle)
+        goal_x = int(goal_x - self.slot_gap * dir_y * np.cos(self.slot_angle))
+        goal_y = int(goal_y - self.slot_gap * dir_y * np.sin(self.slot_angle))
+        return position(goal_x, goal_y)
+    
     def item_region(self, pos, region_size):
         slot_x = int(pos.x - (region_size.w / 2))
         if region_size.h > 75:
@@ -297,5 +304,16 @@ if test:
 
     game.check_slot()
 
+    # game.screen_slider(game.slot_gap_y*3)
     # play_pos = game.get_play_initial_position()
     # pyautogui.moveTo(play_pos.x, play_pos.y)
+    # time.sleep(1)
+    # for i in range(5):
+    #     test_pos = game.slot_calculator_dia(play_pos, 0, i)
+    #     pyautogui.moveTo(test_pos.x, test_pos.y)
+    #     time.sleep(1)
+
+    # for i in range(5):
+    #     test_pos = game.slot_calculator_dia(play_pos, i, 0)
+    #     pyautogui.moveTo(test_pos.x, test_pos.y)
+    #     time.sleep(1)

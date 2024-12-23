@@ -52,7 +52,7 @@ for row_index, row in enumerate(items):
         item_pos = get_position(items, item)
         if len(item_pos) == 1:
             continue
-        
+
         next_row, next_col = get_next_position(row_index, col_index)
         visited.add((row_index, col_index))
 
@@ -60,11 +60,11 @@ for row_index, row in enumerate(items):
             while items[next_row][next_col] == item:
                 visited.add((next_row, next_col))
                 next_row, next_col = get_next_position(next_row, next_col)
-            play_next = game.slot_calculator(play_pos, next_col, next_row)
+            play_next = game.slot_calculator_dia(play_pos, next_col, next_row)
             if (position[0], position[1]) not in visited and position[1] < limit:
                 from_row, from_col = position[0], position[1]
-                print(f"Swapping {from_row}, {from_col} to {next_row}, {next_col}")
-                play_from = game.slot_calculator(play_pos, from_col, from_row)
+                print(f"Swapping {from_col}, {from_row} to {next_col}, {next_row}")
+                play_from = game.slot_calculator_dia(play_pos, from_col, from_row)
                 game.swap_item(play_from, play_next)
                 visited.add((next_row, next_col))
                 time.sleep(3)
