@@ -232,7 +232,7 @@ class FMV_handler:
             if slot_image is None:
                 continue
             if scores[slot_number] == 0:
-                clusters[slot_number] = slot_number
+                clusters[slot_number] = -1
 
             for j in range(1, file_number, 2):
                 item_number = (j - 1) // 2

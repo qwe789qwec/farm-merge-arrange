@@ -33,15 +33,13 @@ def get_next_position(x, y):
 game.init_screen_position()
 game.screen_slider(game.slot_gap_y*3)
 play_pos = game.get_play_initial_position()
-pyautogui.moveTo(play_pos.x, play_pos.y)
-time.sleep(5)
 
 
 for row_index, row in enumerate(items):
     range_cols = range(len(row)) if row_index % 2 == 0 else range(len(row) - 1, -1, -1)
     for col_index in range_cols:
         item = row[col_index]
-        if col_index > limit:
+        if col_index > limit or item <= 0:
             continue
         item_pos = get_position(items, item)
         if len(item_pos) == 1:
@@ -51,7 +49,7 @@ for row_index, row in enumerate(items):
         visited.add((row_index, col_index))
 
         for position in item_pos:
-            while items[next_row][next_col] == item:
+            while items[next_row][next_col] == item or items[next_row][next_col] <= 0:
                 visited.add((next_row, next_col))
                 next_row, next_col = get_next_position(next_row, next_col)
             play_next = game.slot_calculator_dia(play_pos, next_col, next_row)
