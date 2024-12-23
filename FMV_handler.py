@@ -57,10 +57,19 @@ class FMV_handler:
         self.play_go_down = 330
 
         # light (1337, 213) | scan (1243, 223)
-        self.scan_relative_position = position(-90, 10)
-        self.play_relative_position = position(0, 0)
+        self.slot_relative_position = position(-90, 10)
 
         self.farm_shape1 = [9, 10, 11, 12, 13, 14, 15, 16, 17]
+
+        self.scan_index = []
+        current_index = 0
+        for row_size in self.farm_shape1:
+            if row_size % 2 == 1:
+                row = np.arange(current_index, current_index + row_size)
+            else:
+                row = np.arange(current_index + row_size - 1, current_index - 1, -1)
+            self.scan_index.append(row)
+            current_index += row_size
 
     def take_screenshot(self, region=None):
         # pyautogui.moveTo(self.drag.x, self.drag.y)
@@ -133,13 +142,19 @@ class FMV_handler:
         cv2.rectangle(image, start, end, color, thickness)
         return image
     
+    def get_play_initial_position(self):
+        light_pos = self.get_item_position(item_name='buttons/light.png')
+        relative_play_pos = position(light_pos.x + self.slot_relative_position.x, light_pos.y + self.slot_relative_position.y)
+        play_pos = self.slot_calculator(relative_play_pos, -8, 0)
+        return play_pos
+    
     def check_slot(self):
         self.init_screen_position()
         self.screen_slider(self.slot_gap_y/2)
 
         for i in range(len(self.farm_shape1)):
             light_pos = self.get_item_position(region=self.game_area, item_name='buttons/light.png')
-            relative_scan = position(light_pos.x + self.scan_relative_position.x, light_pos.y + self.scan_relative_position.y)
+            relative_scan = position(light_pos.x + self.slot_relative_position.x, light_pos.y + self.slot_relative_position.y)
             init_scan = self.slot_calculator(relative_scan, -(self.farm_shape1[i] - 1), i)
             game_image = self.take_screenshot(region=self.game_area)
             img = game_image
@@ -161,7 +176,7 @@ class FMV_handler:
 
         for i in range(len(self.farm_shape1)):
             light_pos = self.get_item_position(region=self.game_area, item_name='buttons/light.png')
-            relative_scan = position(light_pos.x + self.scan_relative_position.x, light_pos.y + self.scan_relative_position.y)
+            relative_scan = position(light_pos.x + self.slot_relative_position.x, light_pos.y + self.slot_relative_position.y)
             init_scan = self.slot_calculator(relative_scan, -(self.farm_shape1[i] - 1), i)
             game_image = self.take_screenshot(region=self.game_area)
 
@@ -236,10 +251,10 @@ class FMV_handler:
 
         return result
 
-    def swap_item(self, from_x, from_y, to_x, to_y):
-        pyautogui.moveTo(from_x, from_y)
+    def swap_item(self, from_pos, to_pos):
+        pyautogui.moveTo(from_pos.x, from_pos.y)
         pyautogui.mouseDown(button='left')
-        pyautogui.moveTo(to_x, to_y, duration=0.5)
+        pyautogui.moveTo(to_pos.x, to_pos.y, duration=0.5)
         pyautogui.mouseUp(button='left')
 
     def save_image(self, image, dir):
@@ -250,56 +265,6 @@ class FMV_handler:
         next_item_id = self.get_next_path_id(dir)
         filename = f"{next_item_id}.png"
         pil_image.save(os.path.join(dir, filename))
-    
-    def find_matching_item(self, item_image):
-        max_match_value = 0.6
-        matching_item_id = None
-        item_image_gray = cv2.cvtColor(item_image, cv2.COLOR_BGR2GRAY)
-
-        # compare the item image with the template images
-        for item_folder in os.listdir("item_template"):
-            item_folder_path = os.path.join("item_template", item_folder)
-            
-            if os.path.isdir(item_folder_path):
-                for template_file in os.listdir(item_folder_path):
-                    template_image_path = os.path.join(item_folder_path, template_file)
-                    template_image = cv2.imread(template_image_path, cv2.IMREAD_GRAYSCALE)
-                    if template_image is None:
-                        continue
-                    # align_image = self.align_images(item_image_gray, template_image)
-                    score, _ = compare_ssim(item_image_gray, template_image, full=True)
-                    # method = cv2.TM_CCOEFF_NORMED
-                    # result = cv2.matchTemplate(item_image_gray, template_image, method)
-                    # _, score, _, _ = cv2.minMaxLoc(result)
-                    
-                    if score > max_match_value:
-                        max_match_value = score
-                        matching_item_id = item_folder
-                    if score > 0.8 and matching_item_id is not None:
-                        # if not template_file.startswith("0_"):
-                        #     new_name = f"0_{template_file}"
-                        #     new_path = os.path.join(item_folder_path, new_name)
-                        #     os.rename(template_image_path, new_path)
-                        #     print(f"Renamed: {template_image_path} -> {new_path}")
-                        break
-
-        # if no matching item found, create a new folder
-        # else, save the new item image
-        if matching_item_id is None:
-            print("No match found, creating a new folder for this item.")
-            new_item_id = str(self.get_next_path_id("item_template"))
-            new_folder = os.path.join("item_template", new_item_id)
-            new_folder = Path(new_folder)
-            new_folder.mkdir(parents=True, exist_ok=True)
-            image_index = self.get_next_path_id(new_folder)
-            cv2.imwrite(os.path.join("item_template", new_item_id, f"{image_index}.png"), item_image)
-            matching_item_id = new_item_id
-        else:
-            image_index = self.get_next_path_id(os.path.join("item_template", matching_item_id))
-            if image_index < 500 and max_match_value < 0.8:
-                cv2.imwrite(os.path.join("item_template", matching_item_id, f"{image_index}.png"), item_image)
-
-        return int(matching_item_id)
     
     def get_next_path_id(self, folder_path):
         existing_ids = []
@@ -317,7 +282,7 @@ class FMV_handler:
         shutil.rmtree(temp_dir)
         print(f"Temporary directory deleted: {temp_dir}")
 
-test = True
+test = False
 if test:
     scna_size = 9
     game = FMV_handler(scan_size=scna_size)
@@ -331,5 +296,6 @@ if test:
     # pyautogui.moveTo(scan_pos.x, scan_pos.y)
 
     game.check_slot()
-    game.capture_slot()
-    result = game.compare_slot_image()
+
+    # play_pos = game.get_play_initial_position()
+    # pyautogui.moveTo(play_pos.x, play_pos.y)

@@ -1,57 +1,28 @@
-def diagonal_snake_traverse(matrix):
-    rows, cols = len(matrix), len(matrix[0])
-    result = []
-
-    for d in range(rows + cols - 1):
-        if d % 2 == 0:
-            # 偶數對角線：從下到上
-            i = min(d, rows - 1)
-            j = d - i
-            while i >= 0 and j < cols:
-                result.append(matrix[i][j])
-                i -= 1
-                j += 1
-        else:
-            # 奇數對角線：從上到下
-            j = min(d, cols - 1)
-            i = d - j
-            while j >= 0 and i < rows:
-                result.append(matrix[i][j])
-                i += 1
-                j -= 1
-
-    return result
-
-# 示例矩陣
-matrix = [
-    [1, 2, 3, 4],
-    [5, 6, 7, 8],
-    [9, 10, 11, 12],
-    [13, 14, 15, 16]
-]
-
-traversal_result = diagonal_snake_traverse(matrix)
-
-print("斜著蛇行的遍歷結果:")
-print(traversal_result)
-
 import numpy as np
 
-# 設定起始值和行數
-start_value = 9
+# 設定一維陣列
+one_d_array = np.arange(9, 54)  # 示例一維陣列
+print("Original 1D array:", one_d_array)
+
+# 設定行數
 rows = 9
+
+farm_shape1 = [9, 10, 11, 12, 13, 14, 15, 16, 17]
 
 # 動態生成矩陣
 matrix = []
-current_value = start_value
-for i in range(rows):
-    row_length = i + 9
-    row = np.arange(current_value, current_value + row_length)
+current_index = 0
+for row_size in farm_shape1:
+    if row_size % 2 == 0:
+        row = np.arange(current_index, current_index + row_size)
+    else:
+        row = np.arange(current_index + row_size - 1, current_index - 1, -1)
     matrix.append(row)
-    current_value += row_length
+    current_index += row_size
 
-# 打印矩陣
+# 打印結果
+print("\nReshaped matrix:")
 for row in matrix:
     print(row)
 
-print(matrix[1][11])
+print(matrix[1][8])
