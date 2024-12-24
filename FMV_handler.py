@@ -116,8 +116,8 @@ class FMV_handler:
         pyautogui.moveTo(self.drag.x, self.drag.y)
         time.sleep(0.3)
         pyautogui.mouseDown(button='left')
-        pyautogui.move(0, distance, duration=1)
-        time.sleep(config.BASIC['slide_speed'])
+        pyautogui.move(0, distance, duration=config.BASIC['slide_speed'])
+        time.sleep(config.BASIC['slide_speed']*0.3)
         pyautogui.mouseUp(button='left')
 
     def slot_calculator(self, pos, dir_x, dir_y):
