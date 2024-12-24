@@ -17,7 +17,7 @@ temp_dir = "temp_images"
 
 class FMV_handler:
     def __init__(self, item_dir = 'item_template', scan_size = 9):
-        pyautogui.PAUSE = 0.1
+        pyautogui.PAUSE = config.BASIC['mouse_speed']
         os.makedirs(temp_dir, exist_ok=True)
         self.item_dir = item_dir
         self.scan_size = scan_size
@@ -115,9 +115,12 @@ class FMV_handler:
     def screen_slider(self, distance):
         pyautogui.moveTo(self.drag.x, self.drag.y)
         time.sleep(0.3)
-        pyautogui.mouseDown(button='left')
-        pyautogui.move(0, distance, duration=config.BASIC['slide_speed'])
-        time.sleep(config.BASIC['slide_speed']*0.3)
+        if config.BASIC['move_method'] == 'drag':
+            pyautogui.dragRel(0,distance,duration=config.BASIC['mouse_speed'],button='right')
+        else:
+            pyautogui.mouseDown(button='left')
+            pyautogui.move(0, distance, duration=config.BASIC['mouse_speed'])
+        time.sleep(config.BASIC['mouse_speed']*0.3)
         pyautogui.mouseUp(button='left')
 
     def slot_calculator(self, pos, dir_x, dir_y):

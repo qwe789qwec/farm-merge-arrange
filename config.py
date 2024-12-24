@@ -2,7 +2,8 @@ BASIC = {
     'scan_screen': 'buttons/gift_button.png',
     'init_slot_position': 'buttons/light.png',
     'scan_method': 'template', # template or cluster
-    'slide_speed': 0.3,
+    'move_method': 'click', # drag or click
+    'mouse_speed': 1,
 }
 
 RELATIVE = {
@@ -22,6 +23,6 @@ SIZE = {
     'item_height': 50,
     'slot_width': 80, #(80, 80)
     'slot_height': 80,
-    'slant_distance': 74,
-    'vertical_distance': 66
+    'slant_distance': 77,
+    'vertical_distance': 69
 }
