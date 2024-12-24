@@ -17,7 +17,7 @@ temp_dir = "temp_images"
 
 class FMV_handler:
     def __init__(self, item_dir = 'item_template', scan_size = 9):
-        pyautogui.PAUSE = config.BASIC['mouse_speed']
+        pyautogui.PAUSE = config.BASIC['mouse_speed']*0.1
         os.makedirs(temp_dir, exist_ok=True)
         self.item_dir = item_dir
         self.scan_size = scan_size
