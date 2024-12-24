@@ -6,6 +6,9 @@ This guide provides instructions on how to set up and troubleshoot the FMV_arran
    * If there are any uninstalled you can refer to `requirements.txt`
 2. Run the `FMV_arrange.py` directly.  
 If the script does not work as expected, proceed to the adjustment steps below.
+## Note
+1. Only the first farm is being sorted.
+2. Because the sorting algorithm is based on the swap, it is recommended that both the first and second farms be full, otherwise the objects will run around.
 ## Adjustment Steps
 1. Run the `adjustment.py`.
 2. If the program displays "Failed to get window position.", manually update the gift_button.png image:
@@ -29,6 +32,9 @@ Follow these steps carefully to ensure a smooth setup and operation. If you have
 2. 然後直接執行`FMV_arrange.py`  
 如果無法執行可以試試按照下面的調整步驟。  
 或可能是某些插件沒安裝，就debug看看吧,之後在上requirement。
+## 注意事項
+1. 目前只針對第一塊農場做排序
+2. 因為排序演算法是基於互換原則，所以建議第一第二區都要是滿的，不然物件會亂跑。
 ## 調整步驟
 1. 運行 `adjustment.py`。
 2. 如果程式顯示「無法獲取視窗位置 (Failed to get window position.)」，請手動更新 `gift_button.png` 圖片：
