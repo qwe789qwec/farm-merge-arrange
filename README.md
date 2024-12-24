@@ -9,6 +9,7 @@ If the script does not work as expected, proceed to the adjustment steps below.
 ## Note
 1. Only the first farm is being sorted.
 2. Because the sorting algorithm is based on the swap, it is recommended that both the first and second farms be full, otherwise the objects will be unpredictable.
+3. It is recommended to play the game in single player, otherwise the player joining window may be clicked.
 ## Adjustment Steps
 1. Run the `adjustment.py`.
 2. If the program displays "Failed to get window position.", manually update the gift_button.png image:
@@ -35,6 +36,7 @@ Follow these steps carefully to ensure a smooth setup and operation. If you have
 ## 注意事項
 1. 目前只針對第一塊農場做排序
 2. 因為排序演算法是基於互換原則，所以建議第一第二區都要是滿的，不然物件會亂跑。
+3. 建議單人遊戲遊玩，不然玩家加入視窗可能會點到。
 ## 調整步驟
 1. 運行 `adjustment.py`。
 2. 如果程式顯示「無法獲取視窗位置 (Failed to get window position.)」，請手動更新 `gift_button.png` 圖片：
