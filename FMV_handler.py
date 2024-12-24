@@ -9,6 +9,7 @@ from PIL import Image
 from pathlib import Path
 from collections import namedtuple
 
+init_scan_position = 0.5
 slant_distance = 77 # adjust this value
 vertical_distance = 69 # adjust this value
 
@@ -47,7 +48,7 @@ class FMV_handler:
     def init_parameters(self):
         # (777, 348) (844, 315) (777, 282)
         # slot size
-        self.item_size = size(45, 50)
+        self.item_size = size(60, 60) #(45, 50)
         self.slot_size = size(80, 80)
         self.slot_gap = slant_distance
         self.slot_gap_y = vertical_distance
@@ -179,7 +180,7 @@ class FMV_handler:
     def capture_slot(self):
         # slot_matrix = np.full((17, 3), -1)
         self.init_screen_position()
-        self.screen_slider(self.slot_gap_y*0.6)
+        self.screen_slider(self.slot_gap_y*init_scan_position)
 
         for i in range(len(self.farm_shape1)):
             light_pos = self.get_item_position(region=self.game_area, item_name='buttons/light.png')
@@ -200,9 +201,13 @@ class FMV_handler:
                 self.screen_slider(self.slot_gap_y)
     
     def compare_method(self, img1, img2):
-        result = cv2.matchTemplate(img1, img2, cv2.TM_CCOEFF_NORMED)
+        method = cv2.TM_CCOEFF_NORMED
+        result = cv2.matchTemplate(img1, img2, method)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-        return max_val
+        # align_image = self.align_images(item_image_gray, template_image)
+        # score, _ = compare_ssim(img1, img2, full=True)
+        score = max_val
+        return score
 
 
     def compare_slot_image(self):
@@ -231,21 +236,22 @@ class FMV_handler:
             slot_image = images.get(i)
             if slot_image is None:
                 continue
-            if scores[slot_number] == 0:
-                clusters[slot_number] = -1
+            clusters[slot_number] = self.find_matching_item(slot_image)
+        #     if scores[slot_number] == 0:
+        #         clusters[slot_number] = -1
 
-            for j in range(1, file_number, 2):
-                item_number = (j - 1) // 2
-                if slot_number == item_number:
-                    continue
-                item_image = images.get(j)
-                if item_image is None:
-                    continue
+        #     for j in range(1, file_number, 2):
+        #         item_number = (j - 1) // 2
+        #         if slot_number == item_number:
+        #             continue
+        #         item_image = images.get(j)
+        #         if item_image is None:
+        #             continue
 
-                score = self.compare_method(slot_image, item_image)
-                if score > threshold and score > scores[item_number]:
-                    clusters[item_number] = slot_number
-                    scores[item_number] = score
+        #         score = self.compare_method(slot_image, item_image)
+        #         if score > threshold and score > scores[item_number]:
+        #             clusters[item_number] = slot_number
+        #             scores[item_number] = score
 
         result = []
         current_index = 0
@@ -257,6 +263,53 @@ class FMV_handler:
             current_index += row_length
 
         return result
+    
+    def find_matching_item(self, item_image):
+        max_match_value = 0.6
+        matching_item_id = None
+        item_image_gray = cv2.cvtColor(item_image, cv2.COLOR_BGR2GRAY)
+
+        # compare the item image with the template images
+        for item_folder in os.listdir("item_template"):
+            item_folder_path = os.path.join("item_template", item_folder)
+            
+            if os.path.isdir(item_folder_path):
+                for template_file in os.listdir(item_folder_path):
+                    template_image_path = os.path.join(item_folder_path, template_file)
+                    template_image = cv2.imread(template_image_path, cv2.IMREAD_GRAYSCALE)
+                    if template_image is None:
+                        continue
+
+                    score = self.compare_method(item_image_gray, template_image)
+                    
+                    if score > max_match_value:
+                        max_match_value = score
+                        matching_item_id = item_folder
+                    if score > 0.8 and matching_item_id is not None:
+                        # if not template_file.startswith("0_"):
+                        #     new_name = f"0_{template_file}"
+                        #     new_path = os.path.join(item_folder_path, new_name)
+                        #     os.rename(template_image_path, new_path)
+                        #     print(f"Renamed: {template_image_path} -> {new_path}")
+                        break
+
+        # if no matching item found, create a new folder
+        # else, save the new item image
+        if matching_item_id is None:
+            print("No match found, creating a new folder for this item.")
+            new_item_id = str(self.get_next_path_id("item_template"))
+            new_folder = os.path.join("item_template", new_item_id)
+            new_folder = Path(new_folder)
+            new_folder.mkdir(parents=True, exist_ok=True)
+            image_index = self.get_next_path_id(new_folder)
+            cv2.imwrite(os.path.join("item_template", new_item_id, f"{image_index}.png"), item_image)
+            matching_item_id = new_item_id
+        else:
+            image_index = self.get_next_path_id(os.path.join("item_template", matching_item_id))
+            if image_index < 500 and max_match_value < 0.8:
+                cv2.imwrite(os.path.join("item_template", matching_item_id, f"{image_index}.png"), item_image)
+
+        return int(matching_item_id)
 
     def swap_item(self, from_pos, to_pos):
         pyautogui.moveTo(from_pos.x, from_pos.y)
