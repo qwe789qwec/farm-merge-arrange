@@ -29,7 +29,7 @@ def get_next_position(x, y):
 
 game.init_screen_position()
 game.screen_slider(game.slot_gap_y*config.SIZE['init_scan_position'])
-game.screen_slider(game.slot_gap_y*2.5)
+game.screen_slider(game.slot_gap_y)
 play_pos = game.get_play_initial_position()
 
 for row in items:

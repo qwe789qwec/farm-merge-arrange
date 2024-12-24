@@ -153,24 +153,25 @@ class FMV_handler:
         self.init_screen_position()
         self.screen_slider(self.slot_gap_y*config.SIZE['init_scan_position'])
 
-        for i in range(len(self.farm_shape1)):
+        for i in range(0, (len(self.farm_shape1)), 3):
             light_pos = self.get_item_position(region=self.game_area, item_name=config.BASIC['init_slot_position'])
             relative_scan = position(light_pos.x + self.slot_relative_position.x, light_pos.y + self.slot_relative_position.y)
-            init_scan = self.slot_calculator(relative_scan, -(self.farm_shape1[i] - 1), i)
             game_image = self.take_screenshot(region=self.game_area)
+            for j in range(i, i+3):
+                init_scan = self.slot_calculator(relative_scan, -(self.farm_shape1[j] - 1), j)
+                if j > len(self.farm_shape1):
+                    break
+                for size in range(self.farm_shape1[j]):
+                    scan_pos = self.slot_calculator(init_scan, size, 0)
+                    slot_region = self.item_region(scan_pos, self.slot_size)
+                    slot_img = game_image[slot_region.y:slot_region.y + self.slot_size.h, slot_region.x:slot_region.x + self.slot_size.w]
+                    self.save_image(slot_img, temp_dir)
+                    item_region = self.item_region(scan_pos, self.item_size)
+                    item_img = game_image[item_region.y:item_region.y + self.item_size.h, item_region.x:item_region.x + self.item_size.w]
+                    self.save_image(item_img, temp_dir)
+            if i < len(self.farm_shape1)-3:
+                self.screen_slider(self.slot_gap_y*2.6)
 
-            for j in range(self.farm_shape1[i]):
-                scan_pos = self.slot_calculator(init_scan, j, 0)
-                slot_region = self.item_region(scan_pos, self.slot_size)
-                slot_img = game_image[slot_region.y:slot_region.y + self.slot_size.h, slot_region.x:slot_region.x + self.slot_size.w]
-                self.save_image(slot_img, temp_dir)
-                item_region = self.item_region(scan_pos, self.item_size)
-                item_img = game_image[item_region.y:item_region.y + self.item_size.h, item_region.x:item_region.x + self.item_size.w]
-                self.save_image(item_img, temp_dir)
-
-            if i < 8:
-                self.screen_slider(self.slot_gap_y)
-    
     def compare_method(self, img1, img2):
         method = cv2.TM_CCOEFF_NORMED
         result = cv2.matchTemplate(img1, img2, method)
