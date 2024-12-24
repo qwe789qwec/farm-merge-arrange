@@ -18,6 +18,9 @@ If the script does not work as expected, proceed to the adjustment steps below.
 1. Ensure the game screen is displayed in the foreground; otherwise, the program may fail to capture it.
 2. Additional issues may still occur. Please report any problems you encounter.
 
+## beta function
+* You can change the `scan_method` to cluster, it can be sort for anything but by test is not robust.
+
 Follow these steps carefully to ensure a smooth setup and operation. If you have any questions or need further assistance, don’t hesitate to reach out!
 
 ## 如何安裝
