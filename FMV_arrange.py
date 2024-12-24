@@ -1,4 +1,5 @@
 from FMV_handler import FMV_handler as fmv
+import config
 
 scna_size = 9
 game = fmv(scan_size=scna_size)
@@ -27,9 +28,12 @@ def get_next_position(x, y):
     return next_index[0][0], next_index[0][1]
 
 game.init_screen_position()
-game.screen_slider(game.slot_gap_y*3)
+game.screen_slider(game.slot_gap_y*config.SIZE['init_scan_position'])
+game.screen_slider(game.slot_gap_y*2.5)
 play_pos = game.get_play_initial_position()
 
+for row in items:
+    print(row)
 
 for row_index, row in enumerate(items):
     range_cols = range(len(row)) if row_index % 2 == 0 else range(len(row) - 1, -1, -1)

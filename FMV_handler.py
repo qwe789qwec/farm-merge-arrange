@@ -19,7 +19,6 @@ class FMV_handler:
     def __init__(self, item_dir = 'item_template', scan_size = 9):
         pyautogui.PAUSE = 0.1
         os.makedirs(temp_dir, exist_ok=True)
-        print(f"Temporary directory created: {temp_dir}")
         self.item_dir = item_dir
         self.scan_size = scan_size
         self.init_mouse_position()
@@ -312,4 +311,3 @@ class FMV_handler:
     
     def __del__(self):
         shutil.rmtree(temp_dir)
-        print(f"Temporary directory deleted: {temp_dir}")
