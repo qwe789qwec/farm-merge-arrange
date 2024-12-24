@@ -114,7 +114,7 @@ class FMV_handler:
 
     def screen_slider(self, distance):
         pyautogui.moveTo(self.drag.x, self.drag.y)
-        time.sleep(config.BASIC['slide_speed'])
+        time.sleep(0.3)
         pyautogui.mouseDown(button='left')
         pyautogui.move(0, distance, duration=1)
         time.sleep(config.BASIC['slide_speed'])
