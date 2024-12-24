@@ -8,7 +8,7 @@ This guide provides instructions on how to set up and troubleshoot the FMV_arran
 If the script does not work as expected, proceed to the adjustment steps below.
 ## Note
 1. Only the first farm is being sorted.
-2. Because the sorting algorithm is based on the swap, it is recommended that both the first and second farms be full, otherwise the objects will run around.
+2. Because the sorting algorithm is based on the swap, it is recommended that both the first and second farms be full, otherwise the objects will be unpredictable.
 ## Adjustment Steps
 1. Run the `adjustment.py`.
 2. If the program displays "Failed to get window position.", manually update the gift_button.png image:
