@@ -2,6 +2,7 @@ BASIC = {
     'scan_screen': 'buttons/gift_button.png',
     'init_slot_position': 'buttons/light.png',
     'scan_method': 'template', # template or cluster
+    'slide_speed': 0.3,
 }
 
 RELATIVE = {
