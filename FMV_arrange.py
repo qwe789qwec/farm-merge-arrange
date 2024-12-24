@@ -8,7 +8,7 @@ items = game.compare_slot_image()
 
 last_i = 0
 last_j = 0
-limit = 9
+limit = 10
 visited = set()
 
 def get_position(matrix, target):
@@ -36,6 +36,10 @@ for row in items:
     print(row)
 
 for row_index, row in enumerate(items):
+    if row_index == 2 or row_index == 3:
+        game.screen_slider(game.slot_gap_y)
+        play_pos = game.get_play_initial_position()
+        limit = limit + 1
     range_cols = range(len(row)) if row_index % 2 == 0 else range(len(row) - 1, -1, -1)
     for col_index in range_cols:
         item = row[col_index]
