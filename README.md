@@ -4,7 +4,7 @@ This guide provides instructions on how to set up and troubleshoot the FMV_arran
 ## Installation and Initial Setup
 1. Use a computer to install Python and OpenCV.
    * If there are any uninstalled you can refer to `requirements.txt`
-2. Run the `FMV_arrange.py` directly.
+2. Run the `FMV_arrange.py` directly.  
 If the script does not work as expected, proceed to the adjustment steps below.
 ## Adjustment Steps
 1. Run the `adjustment.py`.
@@ -23,8 +23,8 @@ Follow these steps carefully to ensure a smooth setup and operation. If you have
 ## 如何安裝
 1. 你的電腦必須安裝 python 和 OpenCV.
    * 如果有其他沒安裝到的可以參考`requirements.txt`
-3. 然後直接執行`FMV_arrange.py`
-如果無法執行可以試試按照下面的調整步驟。
+2. 然後直接執行`FMV_arrange.py`  
+如果無法執行可以試試按照下面的調整步驟。  
 或可能是某些插件沒安裝，就debug看看吧,之後在上requirement。
 ## 調整步驟
 1. 運行 `adjustment.py`。
