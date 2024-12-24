@@ -1,5 +1,5 @@
 BASIC = {
-    'scan_screen': 'buttons/gift_button.png',
+    'scan_screen': 'buttons/get_gift.png',
     'init_slot_position': 'buttons/light.png',
     'scan_method': 'template', # template or cluster
     'move_method': 'click', # drag or click
@@ -12,15 +12,15 @@ RELATIVE = {
     'drag_x': 700,
     'drag_y': -300,
     'slot_x': -90,
-    'slot_y': 10,
+    'slot_y': -15,
 }
 
 SIZE = {
     'init_scan_position': 2,
     'game_width': 1400, #(1400, 700)
     'game_height': 700,
-    'item_width': 45, #(45, 50)
-    'item_height': 50,
+    'item_width': 60, #(60, 60)
+    'item_height': 60,
     'slot_width': 80, #(80, 80)
     'slot_height': 80,
     'slant_distance': 77,

@@ -139,9 +139,9 @@ class FMV_handler:
     def item_region(self, pos, region_size):
         slot_x = int(pos.x - (region_size.w / 2))
         if region_size.h > 75:
-            slot_y = int(pos.y - ((region_size.h/4) * 3))
+            slot_y = int(pos.y - (region_size.h * 0.5))
         else:
-            slot_y = int(pos.y - region_size.h + 10)
+            slot_y = int(pos.y - (region_size.h * 0.5))
         return region(slot_x, slot_y, region_size.w, region_size.h)
     
     def get_play_initial_position(self):

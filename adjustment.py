@@ -2,12 +2,13 @@ from FMV_handler import FMV_handler as fmv
 import cv2
 from collections import namedtuple
 import config
+import pyautogui
 
 position = namedtuple('position', ['x', 'y'])
 region = namedtuple('region', ['x', 'y', 'w', 'h'])
 size = namedtuple('size', ['w', 'h'])
 
-check_size = size(45, 50)
+check_size = size(config.SIZE['item_width'], config.SIZE['item_height'])
 
 def make_rectangle(image, region, color=(255,0,0), thickness=3):
     start = (region.x, region.y)
@@ -18,6 +19,9 @@ def make_rectangle(image, region, color=(255,0,0), thickness=3):
 scna_size = 9
 game = fmv(scan_size=scna_size)
 print(f"init position: ({game.gift.x}, {game.gift.y})")
+light_pos = game.get_item_position(item_name=config.BASIC['init_slot_position'])
+game_relative = position(light_pos.x + game.slot_relative_position.x, light_pos.y + game.slot_relative_position.y)
+pyautogui.moveTo(game_relative.x, game_relative.y)
 
 light_pos = game.get_item_position(region=game.game_area, item_name=config.BASIC['init_slot_position'])
 relative_scan = position(light_pos.x + game.slot_relative_position.x, light_pos.y + game.slot_relative_position.y)
