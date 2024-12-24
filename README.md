@@ -20,7 +20,8 @@ If the script does not work as expected, proceed to the adjustment steps below.
 7. Once all adjustments are complete, re-run `FMV_arrange.py` to verify functionality.
 ## Troubleshooting
 1. Ensure the game screen is displayed in the foreground; otherwise, the program may fail to capture it.
-2. Additional issues may still occur. Please report any problems you encounter.
+2. Windows may have some extra slide, try to change the `slide_speed` in `config.py` to fix it.
+3. Additional issues may still occur. Please report any problems you encounter.
 
 ## beta function
 * You can change the `scan_method` to cluster, it can be sort for anything but by test is not robust.
@@ -47,6 +48,7 @@ Follow these steps carefully to ensure a smooth setup and operation. If you have
 5. 完成所有調整後，重新運行 FMV_arrange.py 以驗證功能。
 ## 疑難排解
 1. 確保遊戲畫面顯示在最前方，否則程式可能無法捕捉畫面。
-2. 可能仍會遇到其他問題，可以跟我回報您遇到的問題。
+2. Windows 可能會有多餘的螢幕滑動，改變`config.py` 裡面的 `slide_speed` 來修正。
+3. 可能仍會遇到其他問題，可以跟我回報您遇到的問題。
 
 請仔細按照這些步驟操作，以確保順利完成設定和使用。如果有任何疑問或需要進一步的幫助，請隨時與我聯繫！
