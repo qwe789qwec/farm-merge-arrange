@@ -201,28 +201,34 @@ class FMV_handler:
         images = {int(os.path.splitext(file)[0]): cv2.imread(os.path.join(temp_dir, file))
                 for file in os.listdir(temp_dir)
                 if os.path.splitext(file)[0].isdigit()}
+        if config.BASIC['scan_method'] == 'template':
+            for i in range(0, file_number, 2):
+                slot_number = i // 2
+                slot_image = images.get(i)
+                if slot_image is None:
+                    continue
+                clusters[slot_number] = self.find_matching_item(slot_image)
+        else:
+            for i in range(0, file_number, 2):
+                slot_number = i // 2
+                slot_image = images.get(i)
+                if slot_image is None:
+                    continue
+                if scores[slot_number] == 0:
+                    clusters[slot_number] = -1
 
-        for i in range(0, file_number, 2):
-            slot_number = i // 2
-            slot_image = images.get(i)
-            if slot_image is None:
-                continue
-            clusters[slot_number] = self.find_matching_item(slot_image)
-        #     if scores[slot_number] == 0:
-        #         clusters[slot_number] = -1
+                for j in range(1, file_number, 2):
+                    item_number = (j - 1) // 2
+                    if slot_number == item_number:
+                        continue
+                    item_image = images.get(j)
+                    if item_image is None:
+                        continue
 
-        #     for j in range(1, file_number, 2):
-        #         item_number = (j - 1) // 2
-        #         if slot_number == item_number:
-        #             continue
-        #         item_image = images.get(j)
-        #         if item_image is None:
-        #             continue
-
-        #         score = self.compare_method(slot_image, item_image)
-        #         if score > threshold and score > scores[item_number]:
-        #             clusters[item_number] = slot_number
-        #             scores[item_number] = score
+                    score = self.compare_method(slot_image, item_image)
+                    if score > threshold and score > scores[item_number]:
+                        clusters[item_number] = slot_number
+                        scores[item_number] = score
 
         result = []
         current_index = 0
