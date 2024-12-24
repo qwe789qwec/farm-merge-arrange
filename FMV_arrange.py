@@ -1,8 +1,4 @@
 from FMV_handler import FMV_handler as fmv
-import os
-import time
-import numpy as np
-import pyautogui
 
 scna_size = 9
 game = fmv(scan_size=scna_size)

@@ -8,10 +8,7 @@ import numpy as np
 from PIL import Image
 from pathlib import Path
 from collections import namedtuple
-
-init_scan_position = 0.5
-slant_distance = 77 # adjust this value
-vertical_distance = 69 # adjust this value
+import config
 
 position = namedtuple('position', ['x', 'y'])
 region = namedtuple('region', ['x', 'y', 'w', 'h'])
@@ -27,7 +24,6 @@ class FMV_handler:
         self.scan_size = scan_size
         self.init_mouse_position()
         self.init_parameters()
-        self.init_screen_position()
         # 9-17
 
     def init_mouse_position(self):
@@ -39,26 +35,29 @@ class FMV_handler:
             if self.gift.x is None:
                 print("Failed to get window position.")
                 return
-        print(f"gift position: ({self.gift.x}, {self.gift.y})")
+        # print(f"gift position: ({self.gift.x}, {self.gift.y})")
 
         # game area
-        self.game_area = region(self.gift.x - 700, self.gift.y - 600, 1400, 700)
-        self.drag = position(self.gift.x + 700, self.gift.y - 300)
+        self.game_area = region(self.gift.x + config.RELATIVE['game_x'], 
+                                self.gift.y + config.RELATIVE['game_y'], 
+                                config.SIZE['game_width'], 
+                                config.SIZE['game_height'])
+        self.drag = position(self.gift.x + config.RELATIVE['drag_x'], self.gift.y + config.RELATIVE['drag_y'])
     
     def init_parameters(self):
         # (777, 348) (844, 315) (777, 282)
         # slot size
-        self.item_size = size(60, 60) #(45, 50)
-        self.slot_size = size(80, 80)
-        self.slot_gap = slant_distance
-        self.slot_gap_y = vertical_distance
+        self.item_size = size(config.SIZE['item_width'], config.SIZE['item_height'])
+        self.slot_size = size(config.SIZE['slot_width'], config.SIZE['slot_height'])
+        self.slot_gap = config.SIZE['slant_distance']
+        self.slot_gap_y = config.SIZE['vertical_distance']
         self.slot_angle = np.arctan(0.33/0.67)
 
         self.scan_go_up = 199
         self.play_go_down = 330
 
         # light (1337, 213) | scan (1243, 223)
-        self.slot_relative_position = position(-90, 10)
+        self.slot_relative_position = position(config.RELATIVE['slot_x'], config.RELATIVE['slot_y'])
 
         self.farm_shape1 = [9, 10, 11, 12, 13, 14, 15, 16, 17]
 
@@ -82,7 +81,7 @@ class FMV_handler:
             frame = frame[region.y:region.y + region.h, region.x:region.x + region.w]
         return frame
     
-    def get_item_position(self, region=None,item_name='buttons/gift_button.png'):
+    def get_item_position(self, region=None,item_name=config.BASIC['scan_screen']):
         screenshot = self.take_screenshot(region)
         template = cv2.imread(item_name, cv2.IMREAD_COLOR)
         # size of the template image
@@ -144,46 +143,19 @@ class FMV_handler:
             slot_y = int(pos.y - region_size.h + 10)
         return region(slot_x, slot_y, region_size.w, region_size.h)
     
-    def make_rectangle(self, image, region, color=(255,0,0), thickness=3):
-        start = (region.x, region.y)
-        end = (region.x + region.w, region.y + region.h)
-        cv2.rectangle(image, start, end, color, thickness)
-        return image
-    
     def get_play_initial_position(self):
-        light_pos = self.get_item_position(item_name='buttons/light.png')
+        light_pos = self.get_item_position(item_name=config.BASIC['init_slot_position'])
         relative_play_pos = position(light_pos.x + self.slot_relative_position.x, light_pos.y + self.slot_relative_position.y)
         play_pos = self.slot_calculator(relative_play_pos, -8, 0)
         return play_pos
     
-    def check_slot(self):
-        self.init_screen_position()
-        self.screen_slider(self.slot_gap_y/2)
-
-        for i in range(len(self.farm_shape1)):
-            light_pos = self.get_item_position(region=self.game_area, item_name='buttons/light.png')
-            relative_scan = position(light_pos.x + self.slot_relative_position.x, light_pos.y + self.slot_relative_position.y)
-            init_scan = self.slot_calculator(relative_scan, -(self.farm_shape1[i] - 1), i)
-            game_image = self.take_screenshot(region=self.game_area)
-            img = game_image
-
-            for j in range(self.farm_shape1[i]):
-                scan_pos = self.slot_calculator(init_scan, j, 0)
-                slot_region = self.item_region(scan_pos, self.slot_size)
-                img = self.make_rectangle(img, slot_region)
-                item_region = self.item_region(scan_pos, self.item_size)
-                img = self.make_rectangle(img, item_region)
-
-            self.screen_slider(self.slot_gap_y)
-            self.save_image(img, "buttons")
-
     def capture_slot(self):
         # slot_matrix = np.full((17, 3), -1)
         self.init_screen_position()
-        self.screen_slider(self.slot_gap_y*init_scan_position)
+        self.screen_slider(self.slot_gap_y*config.SIZE['init_scan_position'])
 
         for i in range(len(self.farm_shape1)):
-            light_pos = self.get_item_position(region=self.game_area, item_name='buttons/light.png')
+            light_pos = self.get_item_position(region=self.game_area, item_name=config.BASIC['init_slot_position'])
             relative_scan = position(light_pos.x + self.slot_relative_position.x, light_pos.y + self.slot_relative_position.y)
             init_scan = self.slot_calculator(relative_scan, -(self.farm_shape1[i] - 1), i)
             game_image = self.take_screenshot(region=self.game_area)
@@ -341,32 +313,3 @@ class FMV_handler:
     def __del__(self):
         shutil.rmtree(temp_dir)
         print(f"Temporary directory deleted: {temp_dir}")
-
-test = False
-if test:
-    scna_size = 9
-    game = FMV_handler(scan_size=scna_size)
-    # game.screen_slider(game.slot_gap_y * 1.4)
-    # game.save_image(game.take_screenshot(region=game.game_area), "buttons")
-    # light_pos = game.get_item_position(region=game.game_area, item_name='buttons/light.png')
-    # light_pos = game.get_item_position(region=game.game_area, item_name='buttons/light.png')
-    # print(light_pos)
-    # init_game = position(light_pos.x + game.scan_relative_position.x, light_pos.y + game.scan_relative_position.y)
-    # scan_pos = game.slot_calculator(init_game, -16, 0)
-    # pyautogui.moveTo(scan_pos.x, scan_pos.y)
-
-    game.check_slot()
-
-    # game.screen_slider(game.slot_gap_y*3)
-    # play_pos = game.get_play_initial_position()
-    # pyautogui.moveTo(play_pos.x, play_pos.y)
-    # time.sleep(1)
-    # for i in range(5):
-    #     test_pos = game.slot_calculator_dia(play_pos, 0, i)
-    #     pyautogui.moveTo(test_pos.x, test_pos.y)
-    #     time.sleep(1)
-
-    # for i in range(5):
-    #     test_pos = game.slot_calculator_dia(play_pos, i, 0)
-    #     pyautogui.moveTo(test_pos.x, test_pos.y)
-    #     time.sleep(1)
