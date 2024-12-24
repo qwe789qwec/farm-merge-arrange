@@ -39,7 +39,7 @@ for row_index, row in enumerate(items):
     if row_index == 2 or row_index == 3:
         game.screen_slider(game.slot_gap_y)
         play_pos = game.get_play_initial_position()
-        limit = limit + 0.5
+        limit = limit + 0.6
     range_cols = range(len(row)) if row_index % 2 == 0 else range(len(row) - 1, -1, -1)
     for col_index in range_cols:
         item = row[col_index]

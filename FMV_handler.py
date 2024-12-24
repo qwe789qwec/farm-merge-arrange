@@ -274,7 +274,8 @@ class FMV_handler:
         # else, save the new item image
         if matching_item_id is None:
             print("No match found, creating a new folder for this item.")
-            new_item_id = str(self.get_next_path_id("item_template"))
+            # new_item_id = str(self.get_next_path_id("item_template"))
+            new_item_id = str(-2)
             new_folder = os.path.join("item_template", new_item_id)
             new_folder = Path(new_folder)
             new_folder.mkdir(parents=True, exist_ok=True)
