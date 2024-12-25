@@ -90,14 +90,14 @@ class FMV_handler:
         else:
             # print(f"No matching window found! Retries left: {retries}")
             if retries > 0:
-                only_item_name = item_name[:-4]
-                name, number = only_item_name.split('_')
-                try:
-                    number = int(number) + 1
-                    return self.get_item_position(region, f"{name}_{number}.png", retries - 1)
-                except ValueError:
-                    time.sleep(1)
-                    return self.get_item_position(region, item_name, retries - 1)
+                # only_item_name = item_name[:-4]
+                # name, number = only_item_name.split('_')
+                # try:
+                #     number = int(number) + 1
+                #     return self.get_item_position(region, f"{name}_{number}.png", retries - 1)
+                # except ValueError:
+                #     time.sleep(1)
+                return self.get_item_position(region, item_name, retries - 1)
             else:
                 # print(f"Max retries reached. Unable to find the {item_name}.")
                 return position(None, None)
