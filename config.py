@@ -6,7 +6,7 @@ BASIC = {
     'drag_fix': -1,
     'mouse_speed': 1,
     'test_init_postion': False,
-    'get_farm': True,
+    'get_farm': False,
     'farm_size': 3
 }
 
