@@ -19,7 +19,7 @@ RELATIVE = {
     'game_y': -600,
     'drag_x': 700,
     'drag_y': -300,
-    'slot_x': -90,
+    'slot_x': -85,
     'slot_y': -15,
 }
 
