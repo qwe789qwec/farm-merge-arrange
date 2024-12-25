@@ -34,7 +34,7 @@ play_pos = game.get_play_initial_position()
 
 for row in items:
     print(row)
-
+move_times = 0
 for row_index, row in enumerate(items):
     if row_index == 2 or row_index == 3:
         game.screen_slider(game.slot_gap_y)
@@ -61,9 +61,14 @@ for row_index, row in enumerate(items):
                 from_row, from_col = position[0], position[1]
                 play_from = game.slot_calculator_dia(play_pos, from_col, from_row)
                 game.swap_item(play_from, play_next)
+                move_times = move_times + 1
                 visited.add((next_row, next_col))
                 # time.sleep(3)
                 swap_item = items[from_row][from_col]
                 items[from_row][from_col] = items[next_row][next_col]
                 items[next_row][next_col] = swap_item
                 next_row, next_col = get_next_position(next_row, next_col)
+
+print(move_times)
+for row in items:
+    print(row)
