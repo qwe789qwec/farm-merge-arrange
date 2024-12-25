@@ -29,11 +29,8 @@ class FMV_handler:
         # get window position
         self.gift = self.get_item_position()
         if self.gift.x is None:
-            time.sleep(1)
-            self.gift = self.get_item_position()
-            if self.gift.x is None:
-                print("Failed to get window position.")
-                return
+            print("Failed to get window position.")
+            return
         # print(f"gift position: ({self.gift.x}, {self.gift.y})")
 
         # game area
@@ -79,22 +76,32 @@ class FMV_handler:
         if region is not None:
             frame = frame[region.y:region.y + region.h, region.x:region.x + region.w]
         return frame
-    
-    def get_item_position(self, region=None,item_name=config.BASIC['scan_screen']):
+        
+    def get_item_position(self, region=None, item_name=config.BASIC['scan_screen'], retries=3):
         screenshot = self.take_screenshot(region)
         template = cv2.imread(item_name, cv2.IMREAD_COLOR)
-        # size of the template image
         h, w, _ = template.shape
+
         result = cv2.matchTemplate(screenshot, template, cv2.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
 
-        # get window position
-        if max_val > 0.8:  # matching threshold
-            # print(f"window position: {max_loc}")
-            return position(int(max_loc[0] + h/2), int(max_loc[1] + w/2))
+        if max_val > 0.8:  # 匹配閾值
+            return position(int(max_loc[0] + h / 2), int(max_loc[1] + w / 2))
         else:
-            print("no matching window found!")
-            return position(None, None)
+            print(f"No matching window found! Retries left: {retries}")
+            if retries > 0:
+                if item_name == config.BASIC['scan_screen']:
+                    time.sleep(1)
+                    return self.get_item_position(region, item_name, retries - 1)
+                else:
+                    item_name = item_name[:-4]
+                    name, number = item_name.split('_')
+                    number = int(number) + 1
+                    return self.get_item_position(region, f"{name}_{number}.png", retries - 1)
+            else:
+                print("Max retries reached. Unable to find the window.")
+                return position(None, None)
+
         
     def init_screen_position(self):
         pyautogui.moveTo(self.gift.x, self.gift.y)
