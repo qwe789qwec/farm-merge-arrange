@@ -10,6 +10,10 @@ BASIC = {
     'farm_size': 3
 }
 
+TRAIN = {
+    'times': 10,
+}
+
 RELATIVE = {
     'game_x': -700,
     'game_y': -600,

@@ -86,20 +86,20 @@ class FMV_handler:
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
 
         if max_val > 0.8:  # 匹配閾值
-            return position(int(max_loc[0] + h / 2), int(max_loc[1] + w / 2))
+            return position(int(max_loc[0] + w / 2), int(max_loc[1] + h / 2))
         else:
-            print(f"No matching window found! Retries left: {retries}")
+            # print(f"No matching window found! Retries left: {retries}")
             if retries > 0:
-                if item_name == config.BASIC['scan_screen']:
-                    time.sleep(1)
-                    return self.get_item_position(region, item_name, retries - 1)
-                else:
-                    item_name = item_name[:-4]
-                    name, number = item_name.split('_')
+                only_item_name = item_name[:-4]
+                name, number = only_item_name.split('_')
+                try:
                     number = int(number) + 1
                     return self.get_item_position(region, f"{name}_{number}.png", retries - 1)
+                except ValueError:
+                    time.sleep(1)
+                    return self.get_item_position(region, item_name, retries - 1)
             else:
-                print("Max retries reached. Unable to find the window.")
+                # print(f"Max retries reached. Unable to find the {item_name}.")
                 return position(None, None)
 
         
