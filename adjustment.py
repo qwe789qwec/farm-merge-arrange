@@ -44,3 +44,12 @@ if config.BASIC['test_init_postion']:
     game.init_screen_position()
     game.screen_slider(game.slot_gap_y*config.SIZE['init_scan_position'])
 
+if config.BASIC['get_farm']:
+    game.init_screen_position()
+    for i in range(((config.BASIC['farm_size']*9)//5)+1):
+        game.screen_slider(game.slot_gap_y*5)
+        game_image = game.take_screenshot(region=game.game_area)
+        light_pos = game.get_item_position(region=game.game_area, item_name=config.BASIC['init_slot_position'])
+        farm_position = game.slot_calculator(light_pos, 0, 5)
+        farm_img = game_image[farm_position.y:farm_position.y+80, farm_position.x:farm_position.x+70]
+        game.save_image(farm_img, "buttons", "farm_")

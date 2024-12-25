@@ -299,19 +299,27 @@ class FMV_handler:
         pyautogui.moveTo(to_pos.x, to_pos.y, duration=0.5)
         pyautogui.mouseUp(button='left')
 
-    def save_image(self, image, dir):
+    def save_image(self, image, dir, file_name=None):
         if image is None:
             print("No image to save.")
             return
         pil_image = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-        next_item_id = self.get_next_path_id(dir)
-        filename = f"{next_item_id}.png"
-        pil_image.save(os.path.join(dir, filename))
+        next_item_id = self.get_next_path_id(dir, file_name)
+        if file_name is None:
+            file_name = f"{next_item_id}.png"
+        else:
+            file_name = file_name + f"{next_item_id}.png"
+        pil_image.save(os.path.join(dir, file_name))
     
-    def get_next_path_id(self, folder_path):
+    def get_next_path_id(self, folder_path, file_name=None):
         existing_ids = []
-        for item_folder in os.listdir(folder_path):
-            folder_name, _ = os.path.splitext(item_folder)
+        for file in os.listdir(folder_path):
+            folder_name, _ = os.path.splitext(file)
+            if file_name is not None:
+                if folder_name.startswith(file_name):
+                    folder_name = folder_name[len(file_name):]
+                else:
+                    continue
             if folder_name.isdigit():
                 existing_ids.append(int(folder_name))
 

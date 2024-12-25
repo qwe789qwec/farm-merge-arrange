@@ -1,11 +1,13 @@
 BASIC = {
     'scan_screen': 'buttons/gift_button.png',
-    'init_slot_position': 'buttons/light.png',
+    'init_slot_position': 'buttons/farm_1.png',
     'scan_method': 'template', # template or cluster
     'move_method': 'click', # drag or click
     'drag_fix': -1,
     'mouse_speed': 1,
     'test_init_postion': False,
+    'get_farm': True,
+    'farm_size': 3
 }
 
 RELATIVE = {
