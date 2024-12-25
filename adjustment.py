@@ -40,3 +40,7 @@ for i in range(17):
 
 game.save_image(img, "buttons")
 
+if config.BASIC['test_init_postion']:
+    game.init_screen_position()
+    game.screen_slider(game.slot_gap_y*config.SIZE['init_scan_position'])
+

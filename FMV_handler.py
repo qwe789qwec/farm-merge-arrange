@@ -107,19 +107,20 @@ class FMV_handler:
         time.sleep(1.5)
         # pyautogui.drag(0, 40, duration=1, button='left')
 
-    def init_play_position(self):
-        self.init_screen_position()
-        pyautogui.drag(0, 40, duration=0.6, button='left')
-        time.sleep(1.5)
-
     def screen_slider(self, distance):
         pyautogui.moveTo(self.drag.x, self.drag.y)
         time.sleep(0.3)
         if config.BASIC['move_method'] == 'drag':
-            pyautogui.dragRel(0,distance,duration=config.BASIC['mouse_speed'],button='right')
+            pyautogui.dragRel(0,distance,duration=config.BASIC['mouse_speed'],button='left')
+            if config.BASIC['drag_fix'] > 0:
+                pyautogui.dragRel(0,distance*config.BASIC['drag_fix'],duration=config.BASIC['mouse_speed'],button='left')
+                pyautogui.dragRel(0,-distance*config.BASIC['drag_fix'],duration=config.BASIC['mouse_speed'],button='left')
         else:
             pyautogui.mouseDown(button='left')
             pyautogui.move(0, distance, duration=config.BASIC['mouse_speed'])
+            if config.BASIC['drag_fix'] > 0:
+                pyautogui.move(0, distance*config.BASIC['drag_fix'], duration=config.BASIC['mouse_speed'])
+                pyautogui.move(0, -distance*config.BASIC['drag_fix'], duration=config.BASIC['mouse_speed'])
         time.sleep(config.BASIC['mouse_speed']*0.3)
         pyautogui.mouseUp(button='left')
 
