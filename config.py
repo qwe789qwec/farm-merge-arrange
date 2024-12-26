@@ -6,7 +6,7 @@ BASIC = {
     'drag_fix': -1,
     'mouse_speed': 1,
     'test_init_postion': False,
-    'get_farm': True,
+    'get_farm': False,
     'farm_size': 3
 }
 
@@ -15,7 +15,7 @@ TRAIN = {
 }
 
 RELATIVE = {
-    'game_x': -700,
+    'game_x': -775,
     'game_y': -600,
     'drag_x': 700,
     'drag_y': -300,
@@ -25,7 +25,7 @@ RELATIVE = {
 
 SIZE = {
     'init_scan_position': 2,
-    'game_width': 1400, #(1400, 700)
+    'game_width': 1550, #(1550, 700)
     'game_height': 700,
     'item_width': 60, #(60, 60)
     'item_height': 60,

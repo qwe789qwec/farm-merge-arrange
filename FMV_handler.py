@@ -34,6 +34,7 @@ class FMV_handler:
         # print(f"gift position: ({self.gift.x}, {self.gift.y})")
 
         # game area
+        self.game_area_pos = position(self.gift.x + config.RELATIVE['game_x'], self.gift.y + config.RELATIVE['game_y'])
         self.game_area = region(self.gift.x + config.RELATIVE['game_x'], 
                                 self.gift.y + config.RELATIVE['game_y'], 
                                 config.SIZE['game_width'], 

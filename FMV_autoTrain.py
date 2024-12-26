@@ -7,6 +7,9 @@ from FMV_handler import FMV_handler as fmv
 
 game = fmv(scan_size=9)
 
+def rel_position(rel, target):
+    return rel.x + target.x, rel.y + target.y
+
 def check_exit():
     while True:
         user_input = input("press 0 to exit：")
@@ -20,16 +23,22 @@ thread.start()
 times = 0
 while times < config.TRAIN['times']:
     times += 1
-    print("start...")
-    game.init_screen_position()
-    game.screen_slider(game.slot_gap_y*7)
-    time.sleep(1)
-    ticket_pos = game.get_item_position(item_name="buttons/train_ticket.png")
-    pyautogui.moveTo(ticket_pos.x, ticket_pos.y)
+    print(f"start...{times} times")
+    ticket_pos = game.get_item_position(region=game.game_area, item_name="buttons/train_ticket.png")
+    if ticket_pos.x is None:
+        game.init_screen_position()
+        game.screen_slider(game.slot_gap_y*7)
+        ticket_pos = game.get_item_position(region=game.game_area, item_name="buttons/train_ticket.png")
+        if ticket_pos.x is None:
+            print("Unable to find the ticket.")
+            break
+    mov_pos = rel_position(game.game_area_pos, ticket_pos)
+    pyautogui.moveTo(mov_pos[0], mov_pos[1])
     pyautogui.click()
-    time.sleep(1)
-    visit_pos = game.get_item_position(item_name="buttons/train_visit.png")
-    pyautogui.moveTo(visit_pos.x, visit_pos.y)
+    time.sleep(2)
+    visit_pos = game.get_item_position(region=game.game_area, item_name="buttons/train_visit.png")
+    mov_pos = rel_position(game.game_area_pos, visit_pos)
+    pyautogui.moveTo(mov_pos[0], mov_pos[1])
     pyautogui.click()
     time.sleep(5)
     buttons_list = ["buttons/train_gift.png",
@@ -37,19 +46,21 @@ while times < config.TRAIN['times']:
                  "buttons/train_water.png",
                  "buttons/train_heart.png",
                  "buttons/train_power.png",
+                 "buttons/train_fource.png",
                  "buttons/train_finish.png",]
     visit = set()
     finished_flag = False
-    for slider_times in range(9):
+    for slider_times in range(8):
         for button in buttons_list:
             if button in visit:
                 continue
-            button_pos = game.get_item_position(item_name=button, retries=0)
+            button_pos = game.get_item_position(region=game.game_area, item_name=button, retries=0)
             if button_pos.x is None:
                 # print(f"Unable to find the {button}.")
                 continue
             visit.add(button)
-            pyautogui.moveTo(button_pos.x, button_pos.y)
+            mov_pos = rel_position(game.game_area_pos, button_pos)
+            pyautogui.moveTo(mov_pos[0], mov_pos[1])
             pyautogui.click()
             time.sleep(0.3)
             if button == "buttons/train_finish.png":
@@ -63,7 +74,8 @@ while times < config.TRAIN['times']:
         time.sleep(5)
         continue
     
-    return_pos = game.get_item_position(item_name="buttons/train_return.png")
-    pyautogui.moveTo(return_pos.x, return_pos.y)
+    return_pos = game.get_item_position(region=game.game_area, item_name="buttons/train_return.png")
+    mov_pos = rel_position(game.game_area_pos, return_pos)
+    pyautogui.moveTo(mov_pos[0], mov_pos[1])
     pyautogui.click()
     time.sleep(5)
