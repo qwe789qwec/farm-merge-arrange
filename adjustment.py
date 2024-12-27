@@ -22,6 +22,8 @@ print(f"init position: ({game.gift.x}, {game.gift.y})")
 light_pos = game.get_item_position(item_name=config.BASIC['init_slot_position'])
 game_relative = position(light_pos.x + game.slot_relative_position.x, light_pos.y + game.slot_relative_position.y)
 pyautogui.moveTo(game_relative.x, game_relative.y)
+game_image = game.take_screenshot(region=game.game_area)
+game.save_image(game_image, "buttons")
 
 light_pos = game.get_item_position(region=game.game_area, item_name=config.BASIC['init_slot_position'])
 relative_scan = position(light_pos.x + game.slot_relative_position.x, light_pos.y + game.slot_relative_position.y)
