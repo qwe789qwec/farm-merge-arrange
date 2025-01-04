@@ -24,6 +24,7 @@ if game.game_ref.x is not None:
     game.save_image(game_area, "buttons", "game_area_")
 else:
     print("game not found check the screen_ref or dictionary image")
+    exit()
 
 slot_ref = game.get_item_position(region = game.game_area, item_name=config.BASIC['slot_ref'])
 if slot_ref.x is not None:
@@ -33,6 +34,7 @@ if slot_ref.x is not None:
     print(f"init scan position: ({mouse_move.x}, {mouse_move.y})")
 else:
     print("slot not found check the slot_ref image")
+    exit()
 
 game_image = game.take_screenshot(region=game.game_area)
 slot_ref_region = game.item_region(slot_ref, game.slot_size)

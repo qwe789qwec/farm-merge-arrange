@@ -2,7 +2,7 @@ BASIC = {
     'game_capture': 'buttons/dictionary.png',
     'screen_ref': 'buttons/screen_ref.png',
     'slot_ref': 'buttons/farm_1.png',
-    'drag_fix': -1,
+    'drag_fix': 0,
     'mouse_speed': 1,
     'get_farm': False,
     'farm_size': 9
@@ -14,16 +14,17 @@ TRAIN = {
 
 RELATIVE = {
     'game_x': -1500,
-    'game_y': -600,
-    'drag_x': -30,
+    'game_y': -750,
+    'drag_x': -50,
     'drag_y': -250,
     'slot_x': -85,
     'slot_y': -15,
 }
 
 SIZE = {
+    'init_scan_position': 1.8,
     'game_width': 1500, #(1500, 700)
-    'game_height': 700,
+    'game_height': 800,
     'item_width': 60, #(60, 60)
     'item_height': 60,
     'slot_width': 80, #(80, 80)
