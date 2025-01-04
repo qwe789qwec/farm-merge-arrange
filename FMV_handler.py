@@ -16,45 +16,60 @@ size = namedtuple('size', ['w', 'h'])
 temp_dir = "temp_images"
 
 class FMV_handler:
-    def __init__(self, item_dir = 'item_template', scan_size = 9):
+    def __init__(self, scan_size):
         pyautogui.PAUSE = config.BASIC['mouse_speed']*0.1
         os.makedirs(temp_dir, exist_ok=True)
-        self.item_dir = item_dir
-        self.scan_size = scan_size
+        capture = cv2.imread(config.BASIC['game_capture'])
+        base_height, base_width, _ = capture.shape
+        screen_ref = cv2.imread(config.BASIC['screen_ref'])
+        h, w, _ = screen_ref.shape
+        if (base_height / w) > 1.1 or (base_height / w) < 0.9:
+            self.scale = size(base_width / w, base_height / h)
+        else:
+            self.scale = size(1, 1)
+
+
+        self.item_dir = 'item_template'
+        self.scan_size = 9
         self.init_mouse_position()
         self.init_parameters()
         # 9-17
 
+    def align_images(self, image):
+        if self.scale.w > 1.1 or self.scale.w < 0.9:
+            image = cv2.resize(image, (0, 0), fx=self.scale.w, fy=self.scale.h)
+        return image
+    
     def init_mouse_position(self):
         # get window position
-        self.gift = self.get_item_position()
-        if self.gift.x is None:
+        self.game_ref = self.get_item_position()
+        if self.game_ref.x is None:
             print("Failed to get window position.")
             return
-        # print(f"gift position: ({self.gift.x}, {self.gift.y})")
 
         # game area
-        self.game_area_pos = position(self.gift.x + config.RELATIVE['game_x'], self.gift.y + config.RELATIVE['game_y'])
-        self.game_area = region(self.gift.x + config.RELATIVE['game_x'], 
-                                self.gift.y + config.RELATIVE['game_y'], 
-                                config.SIZE['game_width'], 
-                                config.SIZE['game_height'])
-        self.drag = position(self.gift.x + config.RELATIVE['drag_x'], self.gift.y + config.RELATIVE['drag_y'])
+        self.game_area_pos = position(self.game_ref.x + config.RELATIVE['game_x'] * self.scale.w, 
+                                      self.game_ref.y + config.RELATIVE['game_y'] * self.scale.h)
+        self.game_area = region(self.game_area_pos.x, 
+                                self.game_area_pos.y, 
+                                config.SIZE['game_width'] * self.scale.w,
+                                config.SIZE['game_height'] * self.scale.h)
+        self.drag = position(self.game_ref.x + config.RELATIVE['drag_x'] * self.scale.w,
+                             self.game_ref.y + config.RELATIVE['drag_y'] * self.scale.h)
     
     def init_parameters(self):
         # (777, 348) (844, 315) (777, 282)
         # slot size
-        self.item_size = size(config.SIZE['item_width'], config.SIZE['item_height'])
-        self.slot_size = size(config.SIZE['slot_width'], config.SIZE['slot_height'])
-        self.slot_gap = config.SIZE['slant_distance']
-        self.slot_gap_y = config.SIZE['vertical_distance']
-        self.slot_angle = np.arctan(0.33/0.67)
+        self.item_size = size(config.SIZE['item_width'] * self.scale.w, 
+                              config.SIZE['item_height'] * self.scale.h)
+        self.slot_size = size(config.SIZE['slot_width'] * self.scale.w, 
+                              config.SIZE['slot_height'] * self.scale.h)
+        self.slot_gap = config.SIZE['slant_distance'] * self.scale.w
+        self.slot_gap_y = config.SIZE['vertical_distance'] * self.scale.h
+        self.slot_angle = np.arctan(0.33/0.67) # 19.5 degree
 
-        self.scan_go_up = 199
-        self.play_go_down = 330
-
-        # light (1337, 213) | scan (1243, 223)
-        self.slot_relative_position = position(config.RELATIVE['slot_x'], config.RELATIVE['slot_y'])
+        self.slot_relative = position(config.RELATIVE['slot_x'] * self.scale.w, 
+                                      config.RELATIVE['slot_y'] * self.scale.h)
 
         self.farm_shape1 = [9, 10, 11, 12, 13, 14, 15, 16, 17]
 
@@ -69,8 +84,6 @@ class FMV_handler:
             current_index += row_size
 
     def take_screenshot(self, region=None):
-        # pyautogui.moveTo(self.drag.x, self.drag.y)
-        # pyautogui.click()
         screenshot = pyautogui.screenshot()
         frame = np.array(screenshot)
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -78,9 +91,10 @@ class FMV_handler:
             frame = frame[region.y:region.y + region.h, region.x:region.x + region.w]
         return frame
         
-    def get_item_position(self, region=None, item_name=config.BASIC['scan_screen'], retries=3):
+    def get_item_position(self, region=None, item_name=config.BASIC['screen_ref'], retries=3):
         screenshot = self.take_screenshot(region)
         template = cv2.imread(item_name, cv2.IMREAD_COLOR)
+        template = self.align_images(template)
         h, w, _ = template.shape
 
         result = cv2.matchTemplate(screenshot, template, cv2.TM_CCOEFF_NORMED)
@@ -158,6 +172,9 @@ class FMV_handler:
         relative_play_pos = position(light_pos.x + self.slot_relative_position.x, light_pos.y + self.slot_relative_position.y)
         play_pos = self.slot_calculator(relative_play_pos, -8, 0)
         return play_pos
+    
+    def game_to_screen(self, pos):
+        return position(self.game_area_pos.x + pos.x, self.game_area_pos.y + pos.y)
     
     def capture_slot(self):
         # slot_matrix = np.full((17, 3), -1)

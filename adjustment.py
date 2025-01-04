@@ -18,31 +18,35 @@ def make_rectangle(image, region, color=(255,0,0), thickness=3):
 
 scna_size = 9
 game = fmv(scan_size=scna_size)
-print(f"init position: ({game.gift.x}, {game.gift.y})")
-light_pos = game.get_item_position(item_name=config.BASIC['init_slot_position'])
-game_relative = position(light_pos.x + game.slot_relative_position.x, light_pos.y + game.slot_relative_position.y)
-pyautogui.moveTo(game_relative.x, game_relative.y)
+if game.game_ref.x is not None:
+    print(f"init position: ({game.game_ref.x}, {game.game_ref.y})")
+    game_area = game.take_screenshot(region = game.game_area)
+    game.save_image(game_area, "buttons", "game_area_")
+else:
+    print("game not found check the screen_ref or dictionary image")
 
-light_pos = game.get_item_position(region=game.game_area, item_name=config.BASIC['init_slot_position'])
-relative_scan = position(light_pos.x + game.slot_relative_position.x, light_pos.y + game.slot_relative_position.y)
-print(f"init scan position: ({relative_scan.x}, {relative_scan.y})")
-light_region = game.item_region(light_pos, game.slot_size)
-init_region = game.item_region(relative_scan, game.slot_size)
+slot_ref = game.get_item_position(region = game.game_area, item_name=config.BASIC['slot_ref'])
+if slot_ref.x is not None:
+    slot_init = position(slot_ref.x + game.slot_relative.x, slot_ref.y + game.slot_relative.y)
+    mouse_move = game.game_to_screen(slot_init)
+    pyautogui.moveTo(mouse_move.x, mouse_move.y)
+    print(f"init scan position: ({mouse_move.x}, {mouse_move.y})")
+else:
+    print("slot not found check the slot_ref image")
+
+game_image = game.take_screenshot(region=game.game_area)
+slot_ref_region = game.item_region(slot_ref, game.slot_size)
+slot_init_region = game.item_region(slot_init, game.slot_size)
 game_image = game.take_screenshot(region=game.game_area)
 img = game_image
-img = make_rectangle(img, init_region)
-img = make_rectangle(img, light_region, color=(0,0,255))
+img = make_rectangle(img, slot_init_region)
+img = make_rectangle(img, slot_ref_region, color=(0,0,255))
 for i in range(17):
     for j in range(9):
-        scan_pos = game.slot_calculator(relative_scan, -i, j)
+        scan_pos = game.slot_calculator(slot_init, -i, j)
         slot_region = game.item_region(scan_pos, check_size)
         img = make_rectangle(img, slot_region)
-
-game.save_image(img, "buttons")
-
-if config.BASIC['test_init_postion']:
-    game.init_screen_position()
-    game.screen_slider(game.slot_gap_y*config.SIZE['init_scan_position'])
+game.save_image(img, "buttons", "game_scan_")
 
 if config.BASIC['get_farm']:
     game.init_screen_position()
