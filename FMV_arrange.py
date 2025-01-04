@@ -30,10 +30,10 @@ def get_next_position(x, y):
 game.init_screen_position()
 game.screen_slider(game.slot_gap_y*(config.SIZE['init_scan_position'] + 1))
 play_pos = game.get_play_initial_position()
-
 for row in items:
     print(row)
 move_times = 0
+
 for row_index, row in enumerate(items):
     if row_index == 2 or row_index == 3:
         game.screen_slider(game.slot_gap_y)

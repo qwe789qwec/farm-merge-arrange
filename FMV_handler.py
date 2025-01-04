@@ -205,14 +205,36 @@ class FMV_handler:
                 images[file_number] = image
         
         clusters = {}
+        cross_compare = []
         for key, value in images.items():
             item_id = self.find_matching_item(value)
             clusters[key] = item_id
+            if item_id == -2:
+                cross_compare.append(key)
+        
+        visited = set()
+        compare_id = 200
+        for key in cross_compare:
+            if key in visited:
+                continue
+            visited.add(key)
+            compare_flag = False
+            for key2 in cross_compare:
+                if key2 in visited:
+                    continue
+                score = self.compare_method(images[key], self.crop_image(images[key2], self.item_size))
+                if score > 0.8:
+                    if not compare_flag:
+                        clusters[key] = compare_id
+                        compare_id += 1
+                    compare_flag = True
+                    clusters[key2] = clusters[key]
+                    visited.add(key2)
 
         # Sort clusters by keys and transform into a list
         sorted_keys = sorted(clusters.keys())
         sorted_clusters = [clusters[key] for key in sorted_keys]
-
+            
         result = []
         current_index = 0
         for row_length in self.farm_shape1:
@@ -260,8 +282,8 @@ class FMV_handler:
                     if score > max_match_value:
                         max_match_value = score
                         matching_item_id = item_folder
-                if score > 0.9 and matching_item_id is not None:
-                    break
+            if score > 0.8 and matching_item_id is not None:
+                break
 
         # if no matching item found, create a new folder
         # else, save the new item image
