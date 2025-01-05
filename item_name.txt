@@ -17,13 +17,16 @@
 71 deer
 76 Truffle pig
 
-100 money
-110 gen
-120 wood
-130 stone
-140 key
-145 box
-147 tool box
-150 house
+101 coin
+111 gem
+121 energy
+126 key
+131 chest
+136 wood
+146 stone
+156 tree
+161 rock
+166 tool box
+171 tool
+181 house
 
-160 other

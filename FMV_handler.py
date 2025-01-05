@@ -16,44 +16,60 @@ size = namedtuple('size', ['w', 'h'])
 temp_dir = "temp_images"
 
 class FMV_handler:
-    def __init__(self, item_dir = 'item_template', scan_size = 9):
+    def __init__(self, scan_size):
         pyautogui.PAUSE = config.BASIC['mouse_speed']*0.1
         os.makedirs(temp_dir, exist_ok=True)
-        self.item_dir = item_dir
-        self.scan_size = scan_size
+        capture = cv2.imread(config.BASIC['screen_ref'])
+        base_height, base_width, _ = capture.shape
+        screen_ref = cv2.imread(config.BASIC['game_capture'])
+        h, w, _ = screen_ref.shape
+        if (base_height / w) > 1.1 or (base_height / w) < 0.9:
+            self.scale = size(base_width / w, base_height / h)
+        else:
+            self.scale = size(1, 1)
+
+
+        self.item_dir = 'item_template'
+        self.scan_size = 9
         self.init_mouse_position()
         self.init_parameters()
         # 9-17
 
+    def align_images(self, image):
+        if self.scale.w > 1.1 or self.scale.w < 0.9:
+            image = cv2.resize(image, (0, 0), fx=self.scale.w, fy=self.scale.h)
+        return image
+    
     def init_mouse_position(self):
         # get window position
-        self.gift = self.get_item_position()
-        if self.gift.x is None:
+        self.game_ref = self.get_item_position()
+        if self.game_ref.x is None:
             print("Failed to get window position.")
             return
-        # print(f"gift position: ({self.gift.x}, {self.gift.y})")
 
         # game area
-        self.game_area = region(self.gift.x + config.RELATIVE['game_x'], 
-                                self.gift.y + config.RELATIVE['game_y'], 
-                                config.SIZE['game_width'], 
-                                config.SIZE['game_height'])
-        self.drag = position(self.gift.x + config.RELATIVE['drag_x'], self.gift.y + config.RELATIVE['drag_y'])
+        self.game_area_pos = position(self.game_ref.x + config.RELATIVE['game_x'] * self.scale.w, 
+                                      self.game_ref.y + config.RELATIVE['game_y'] * self.scale.h)
+        self.game_area = region(self.game_area_pos.x, 
+                                self.game_area_pos.y, 
+                                config.SIZE['game_width'] * self.scale.w,
+                                config.SIZE['game_height'] * self.scale.h)
+        self.drag = position(self.game_ref.x + config.RELATIVE['drag_x'] * self.scale.w,
+                             self.game_ref.y + config.RELATIVE['drag_y'] * self.scale.h)
     
     def init_parameters(self):
         # (777, 348) (844, 315) (777, 282)
         # slot size
-        self.item_size = size(config.SIZE['item_width'], config.SIZE['item_height'])
-        self.slot_size = size(config.SIZE['slot_width'], config.SIZE['slot_height'])
-        self.slot_gap = config.SIZE['slant_distance']
-        self.slot_gap_y = config.SIZE['vertical_distance']
-        self.slot_angle = np.arctan(0.33/0.67)
+        self.item_size = size(config.SIZE['item_width'] * self.scale.w, 
+                              config.SIZE['item_height'] * self.scale.h)
+        self.slot_size = size(config.SIZE['slot_width'] * self.scale.w, 
+                              config.SIZE['slot_height'] * self.scale.h)
+        self.slot_gap = config.SIZE['slant_distance'] * self.scale.w
+        self.slot_gap_y = config.SIZE['vertical_distance'] * self.scale.h
+        self.slot_angle = np.arctan(0.33/0.67) # 19.5 degree
 
-        self.scan_go_up = 199
-        self.play_go_down = 330
-
-        # light (1337, 213) | scan (1243, 223)
-        self.slot_relative_position = position(config.RELATIVE['slot_x'], config.RELATIVE['slot_y'])
+        self.slot_relative = position(config.RELATIVE['slot_x'] * self.scale.w, 
+                                      config.RELATIVE['slot_y'] * self.scale.h)
 
         self.farm_shape1 = [9, 10, 11, 12, 13, 14, 15, 16, 17]
 
@@ -68,8 +84,6 @@ class FMV_handler:
             current_index += row_size
 
     def take_screenshot(self, region=None):
-        # pyautogui.moveTo(self.drag.x, self.drag.y)
-        # pyautogui.click()
         screenshot = pyautogui.screenshot()
         frame = np.array(screenshot)
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -77,9 +91,10 @@ class FMV_handler:
             frame = frame[region.y:region.y + region.h, region.x:region.x + region.w]
         return frame
         
-    def get_item_position(self, region=None, item_name=config.BASIC['scan_screen'], retries=3):
+    def get_item_position(self, region=None, item_name=config.BASIC['game_capture'], retries=3):
         screenshot = self.take_screenshot(region)
         template = cv2.imread(item_name, cv2.IMREAD_COLOR)
+        template = self.align_images(template)
         h, w, _ = template.shape
 
         result = cv2.matchTemplate(screenshot, template, cv2.TM_CCOEFF_NORMED)
@@ -90,21 +105,21 @@ class FMV_handler:
         else:
             # print(f"No matching window found! Retries left: {retries}")
             if retries > 0:
-                # only_item_name = item_name[:-4]
-                # name, number = only_item_name.split('_')
-                # try:
-                #     number = int(number) + 1
-                #     return self.get_item_position(region, f"{name}_{number}.png", retries - 1)
-                # except ValueError:
-                #     time.sleep(1)
-                return self.get_item_position(region, item_name, retries - 1)
+                only_item_name = item_name[:-4]
+                name, number = only_item_name.split('_')
+                try:
+                    number = int(number) + 1
+                    return self.get_item_position(region, f"{name}_{number}.png", retries - 1)
+                except ValueError:
+                    time.sleep(1)
+                    return self.get_item_position(region, item_name, retries - 1)
             else:
                 # print(f"Max retries reached. Unable to find the {item_name}.")
                 return position(None, None)
 
         
     def init_screen_position(self):
-        pyautogui.moveTo(self.gift.x, self.gift.y)
+        pyautogui.moveTo(self.drag.x, self.drag.y)
         pyautogui.scroll(-30, x=None, y=None)
         pyautogui.moveTo(self.drag.x, self.drag.y)
         pyautogui.drag(0, -150, duration=config.BASIC['mouse_speed']*0.1, button='left')
@@ -117,19 +132,9 @@ class FMV_handler:
     def screen_slider(self, distance):
         pyautogui.moveTo(self.drag.x, self.drag.y)
         time.sleep(0.3)
-        if config.BASIC['move_method'] == 'drag':
-            if config.BASIC['drag_fix'] > 0:
-                pyautogui.dragRel(0,distance*(1 + config.BASIC['drag_fix']),duration=config.BASIC['mouse_speed'],button='left')
-                pyautogui.dragRel(0,-distance*config.BASIC['drag_fix'],duration=config.BASIC['mouse_speed'],button='left')
-            else:
-                pyautogui.dragRel(0,distance,duration=config.BASIC['mouse_speed'],button='left')
-        else:
-            pyautogui.mouseDown(button='left')
-            if config.BASIC['drag_fix'] > 0:
-                pyautogui.move(0, distance*(1 + config.BASIC['drag_fix']), duration=config.BASIC['mouse_speed'])
-                pyautogui.move(0, -distance*config.BASIC['drag_fix'], duration=config.BASIC['mouse_speed'])
-            else:
-                pyautogui.move(0, distance, duration=config.BASIC['mouse_speed'])
+        pyautogui.mouseDown(button='left')
+        pyautogui.move(0, distance * (1 + config.BASIC['drag_fix']), duration=config.BASIC['mouse_speed'])
+        pyautogui.move(0, -distance * config.BASIC['drag_fix'], duration=config.BASIC['mouse_speed'])
         time.sleep(config.BASIC['mouse_speed']*0.3)
         pyautogui.mouseUp(button='left')
 
@@ -155,10 +160,13 @@ class FMV_handler:
         return region(slot_x, slot_y, region_size.w, region_size.h)
     
     def get_play_initial_position(self):
-        light_pos = self.get_item_position(item_name=config.BASIC['init_slot_position'])
-        relative_play_pos = position(light_pos.x + self.slot_relative_position.x, light_pos.y + self.slot_relative_position.y)
+        light_pos = self.get_item_position(item_name=config.BASIC['slot_ref'])
+        relative_play_pos = position(light_pos.x + self.slot_relative.x, light_pos.y + self.slot_relative.y)
         play_pos = self.slot_calculator(relative_play_pos, -8, 0)
         return play_pos
+    
+    def game_to_screen(self, pos):
+        return position(self.game_area_pos.x + pos.x, self.game_area_pos.y + pos.y)
     
     def capture_slot(self):
         # slot_matrix = np.full((17, 3), -1)
@@ -166,8 +174,8 @@ class FMV_handler:
         self.screen_slider(self.slot_gap_y*config.SIZE['init_scan_position'])
 
         for i in range(0, (len(self.farm_shape1)), 3):
-            light_pos = self.get_item_position(region=self.game_area, item_name=config.BASIC['init_slot_position'])
-            relative_scan = position(light_pos.x + self.slot_relative_position.x, light_pos.y + self.slot_relative_position.y)
+            light_pos = self.get_item_position(region=self.game_area, item_name=config.BASIC['slot_ref'])
+            relative_scan = position(light_pos.x + self.slot_relative.x, light_pos.y + self.slot_relative.y)
             game_image = self.take_screenshot(region=self.game_area)
             for j in range(i, i+3):
                 init_scan = self.slot_calculator(relative_scan, -(self.farm_shape1[j] - 1), j)
@@ -178,12 +186,66 @@ class FMV_handler:
                     slot_region = self.item_region(scan_pos, self.slot_size)
                     slot_img = game_image[slot_region.y:slot_region.y + self.slot_size.h, slot_region.x:slot_region.x + self.slot_size.w]
                     self.save_image(slot_img, temp_dir)
-                    item_region = self.item_region(scan_pos, self.item_size)
-                    item_img = game_image[item_region.y:item_region.y + self.item_size.h, item_region.x:item_region.x + self.item_size.w]
-                    self.save_image(item_img, temp_dir)
             if i < len(self.farm_shape1)-3:
                 self.screen_slider(self.slot_gap_y*2.6)
 
+    def compare_slot_image(self):
+        # load images
+        images = {}
+        all_files = os.listdir(temp_dir)
+        numeric_files = sorted(
+            [file for file in all_files if os.path.splitext(file)[0].isdigit()],
+            key=lambda x: int(os.path.splitext(x)[0])
+        )
+        for file in numeric_files:
+            file_path = os.path.join(temp_dir, file)
+            image = cv2.imread(file_path)
+            if image is not None:
+                file_number = int(os.path.splitext(file)[0])
+                images[file_number] = image
+        
+        clusters = {}
+        cross_compare = []
+        for key, value in images.items():
+            item_id = self.find_matching_item(value)
+            clusters[key] = item_id
+            if item_id == -2:
+                cross_compare.append(key)
+        
+        visited = set()
+        compare_id = 200
+        for key in cross_compare:
+            if key in visited:
+                continue
+            visited.add(key)
+            compare_flag = False
+            for key2 in cross_compare:
+                if key2 in visited:
+                    continue
+                score = self.compare_method(images[key], self.crop_image(images[key2], self.item_size))
+                if score > 0.8:
+                    if not compare_flag:
+                        clusters[key] = compare_id
+                        compare_id += 1
+                    compare_flag = True
+                    clusters[key2] = clusters[key]
+                    visited.add(key2)
+
+        # Sort clusters by keys and transform into a list
+        sorted_keys = sorted(clusters.keys())
+        sorted_clusters = [clusters[key] for key in sorted_keys]
+            
+        result = []
+        current_index = 0
+        for row_length in self.farm_shape1:
+            if current_index + row_length > len(sorted_clusters):
+                raise ValueError("Farm shape exceeds cluster array size.")
+            row = sorted_clusters[current_index:current_index + row_length]
+            result.append(row)
+            current_index += row_length
+
+        return result
+    
     def compare_method(self, img1, img2):
         method = cv2.TM_CCOEFF_NORMED
         result = cv2.matchTemplate(img1, img2, method)
@@ -192,77 +254,22 @@ class FMV_handler:
         # score, _ = compare_ssim(img1, img2, full=True)
         score = max_val
         return score
-
-
-    def compare_slot_image(self):
-        image_id = [
-            int(name)
-            for name in (os.path.splitext(image_file)[0] for image_file in os.listdir(temp_dir))
-            if name.isdigit()
-        ]
-
-        file_number = max(image_id, default=0)
-        if file_number <= 0:
-            raise ValueError("No valid images found in the directory.")
-
-        threshold = 0.8
-        slot_size = (file_number + 1) // 2
-        clusters = np.zeros((slot_size,), dtype=int)
-        scores = np.zeros((slot_size,), dtype=int)
-
-        # preloading images
-        images = {int(os.path.splitext(file)[0]): cv2.imread(os.path.join(temp_dir, file))
-                for file in os.listdir(temp_dir)
-                if os.path.splitext(file)[0].isdigit()}
-        if config.BASIC['scan_method'] == 'template':
-            for i in range(0, file_number, 2):
-                slot_number = i // 2
-                slot_image = images.get(i)
-                if slot_image is None:
-                    continue
-                clusters[slot_number] = self.find_matching_item(slot_image)
-        else:
-            for i in range(0, file_number, 2):
-                slot_number = i // 2
-                slot_image = images.get(i)
-                if slot_image is None:
-                    continue
-                if scores[slot_number] == 0:
-                    clusters[slot_number] = -1
-
-                for j in range(1, file_number, 2):
-                    item_number = (j - 1) // 2
-                    if slot_number == item_number:
-                        continue
-                    item_image = images.get(j)
-                    if item_image is None:
-                        continue
-
-                    score = self.compare_method(slot_image, item_image)
-                    if score > threshold and score > scores[item_number]:
-                        clusters[item_number] = slot_number
-                        scores[item_number] = score
-
-        result = []
-        current_index = 0
-        for row_length in self.farm_shape1:
-            if current_index + row_length > len(clusters):
-                raise ValueError("Farm shape exceeds cluster array size.")
-            row = clusters[current_index:current_index + row_length]
-            result.append(row)
-            current_index += row_length
-
-        return result
     
-    def find_matching_item(self, item_image):
+    def crop_image(self, image, size):
+        w, h, _ = image.shape
+        x = int(w/2 - size.w/2)
+        y = int(h/2 - size.h/2)
+        return image[x:x+size.w, y:y+size.h]
+    
+    def find_matching_item(self, slot_image):
         max_match_value = 0.6
         matching_item_id = None
-        item_image_gray = cv2.cvtColor(item_image, cv2.COLOR_BGR2GRAY)
+        slot_image_gray = cv2.cvtColor(slot_image, cv2.COLOR_BGR2GRAY)
 
         # compare the item image with the template images
         for item_folder in os.listdir("item_template"):
             item_folder_path = os.path.join("item_template", item_folder)
-            
+            score = 0
             if os.path.isdir(item_folder_path):
                 for template_file in os.listdir(item_folder_path):
                     template_image_path = os.path.join(item_folder_path, template_file)
@@ -270,18 +277,13 @@ class FMV_handler:
                     if template_image is None:
                         continue
 
-                    score = self.compare_method(item_image_gray, template_image)
+                    score = self.compare_method(slot_image_gray, template_image)
                     
                     if score > max_match_value:
                         max_match_value = score
                         matching_item_id = item_folder
-                    if score > 0.8 and matching_item_id is not None:
-                        # if not template_file.startswith("0_"):
-                        #     new_name = f"0_{template_file}"
-                        #     new_path = os.path.join(item_folder_path, new_name)
-                        #     os.rename(template_image_path, new_path)
-                        #     print(f"Renamed: {template_image_path} -> {new_path}")
-                        break
+            if score > 0.8 and matching_item_id is not None:
+                break
 
         # if no matching item found, create a new folder
         # else, save the new item image
@@ -293,12 +295,14 @@ class FMV_handler:
             new_folder = Path(new_folder)
             new_folder.mkdir(parents=True, exist_ok=True)
             image_index = self.get_next_path_id(new_folder)
-            cv2.imwrite(os.path.join("item_template", new_item_id, f"{image_index}.png"), item_image)
+            save_img = self.crop_image(slot_image, self.item_size)
+            cv2.imwrite(os.path.join("item_template", new_item_id, f"{image_index}.png"), save_img)
             matching_item_id = new_item_id
         else:
-            image_index = self.get_next_path_id(os.path.join("item_template", matching_item_id))
-            if image_index < 500 and max_match_value < 0.8:
-                cv2.imwrite(os.path.join("item_template", matching_item_id, f"{image_index}.png"), item_image)
+            if max_match_value < 0.8:
+                image_index = self.get_next_path_id(os.path.join("item_template", matching_item_id))
+                save_img = self.crop_image(slot_image, self.item_size)
+                cv2.imwrite(os.path.join("item_template", matching_item_id, f"{image_index}.png"), save_img)
 
         return int(matching_item_id)
 
