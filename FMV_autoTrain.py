@@ -5,6 +5,8 @@ import pyautogui
 import time
 from FMV_handler import FMV_handler as fmv
 
+start_time = time.time()
+
 game = fmv(scan_size=9)
 
 def check_exit():
@@ -21,6 +23,11 @@ times = 0
 while times < config.TRAIN['times']:
     times += 1
     print(f"start...{times} times")
+    train_pos = game.get_item_position(region=game.game_area, item_name="buttons/train.png", align= False)
+    if train_pos.x is not None:
+        mov_pos = game.game_to_screen(train_pos)
+        pyautogui.moveTo(mov_pos.x, mov_pos.y)
+        pyautogui.click()
     ticket_pos = game.get_item_position(region=game.game_area, item_name="buttons/train_ticket.png", align= False)
     if ticket_pos.x is None:
         game.init_screen_position()
@@ -76,3 +83,7 @@ while times < config.TRAIN['times']:
     pyautogui.moveTo(mov_pos.x, mov_pos.y)
     pyautogui.click()
     time.sleep(5)
+
+end_time = time.time()
+execution_time = (end_time - start_time) / 60
+print(f"total time: {execution_time:.2f} minutes")
