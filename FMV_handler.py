@@ -311,7 +311,7 @@ class FMV_handler:
     def swap_item(self, from_pos, to_pos):
         pyautogui.moveTo(from_pos.x, from_pos.y)
         pyautogui.mouseDown(button='left')
-        pyautogui.moveTo(to_pos.x, to_pos.y, duration=0.5)
+        pyautogui.moveTo(to_pos.x, to_pos.y, duration=0.1)
         pyautogui.mouseUp(button='left')
 
     def save_image(self, image, dir, file_name=None):

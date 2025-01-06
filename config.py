@@ -5,7 +5,8 @@ BASIC = {
     'drag_fix': 0,
     'mouse_speed': 1,
     'get_farm': False,
-    'farm_size': 9
+    'farm_size': 9,
+    'auto_combine': False,
 }
 
 TRAIN = {
