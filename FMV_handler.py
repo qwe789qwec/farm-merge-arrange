@@ -23,6 +23,7 @@ class FMV_handler:
         base_height, base_width, _ = capture.shape
         screen_ref = cv2.imread(config.BASIC['game_capture'])
         h, w, _ = screen_ref.shape
+        print(base_height/ w, base_width/ h)
         if (base_height / w) > 1.1 or (base_height / w) < 0.9:
             self.scale = size(base_width / w, base_height / h)
         else:
@@ -48,28 +49,28 @@ class FMV_handler:
             return
 
         # game area
-        self.game_area_pos = position(self.game_ref.x + config.RELATIVE['game_x'] * self.scale.w, 
-                                      self.game_ref.y + config.RELATIVE['game_y'] * self.scale.h)
+        self.game_area_pos = position(self.game_ref.x + int(config.RELATIVE['game_x'] * self.scale.w), 
+                                      self.game_ref.y + int(config.RELATIVE['game_y'] * self.scale.h))
         self.game_area = region(self.game_area_pos.x, 
                                 self.game_area_pos.y, 
-                                config.SIZE['game_width'] * self.scale.w,
-                                config.SIZE['game_height'] * self.scale.h)
-        self.drag = position(self.game_ref.x + config.RELATIVE['drag_x'] * self.scale.w,
-                             self.game_ref.y + config.RELATIVE['drag_y'] * self.scale.h)
+                                int(config.SIZE['game_width'] * self.scale.w),
+                                int(config.SIZE['game_height'] * self.scale.h))
+        self.drag = position(self.game_ref.x + int(config.RELATIVE['drag_x'] * self.scale.w),
+                             self.game_ref.y + int(config.RELATIVE['drag_y'] * self.scale.h))
     
     def init_parameters(self):
         # (777, 348) (844, 315) (777, 282)
         # slot size
-        self.item_size = size(config.SIZE['item_width'] * self.scale.w, 
-                              config.SIZE['item_height'] * self.scale.h)
-        self.slot_size = size(config.SIZE['slot_width'] * self.scale.w, 
-                              config.SIZE['slot_height'] * self.scale.h)
-        self.slot_gap = config.SIZE['slant_distance'] * self.scale.w
-        self.slot_gap_y = config.SIZE['vertical_distance'] * self.scale.h
+        self.item_size = size(int(config.SIZE['item_width'] * self.scale.w), 
+                              int(config.SIZE['item_height'] * self.scale.h))
+        self.slot_size = size(int(config.SIZE['slot_width'] * self.scale.w), 
+                              int(config.SIZE['slot_height'] * self.scale.h))
+        self.slot_gap = int(config.SIZE['slant_distance'] * self.scale.w)
+        self.slot_gap_y = int(config.SIZE['vertical_distance'] * self.scale.h)
         self.slot_angle = np.arctan(0.33/0.67) # 19.5 degree
 
-        self.slot_relative = position(config.RELATIVE['slot_x'] * self.scale.w, 
-                                      config.RELATIVE['slot_y'] * self.scale.h)
+        self.slot_relative = position(int(config.RELATIVE['slot_x'] * self.scale.w), 
+                                      int(config.RELATIVE['slot_y'] * self.scale.h))
 
         self.farm_shape1 = [9, 10, 11, 12, 13, 14, 15, 16, 17]
 
@@ -91,10 +92,11 @@ class FMV_handler:
             frame = frame[region.y:region.y + region.h, region.x:region.x + region.w]
         return frame
         
-    def get_item_position(self, region=None, item_name=config.BASIC['game_capture'], retries=3):
+    def get_item_position(self, region=None, item_name=config.BASIC['game_capture'], retries=3, align=True):
         screenshot = self.take_screenshot(region)
         template = cv2.imread(item_name, cv2.IMREAD_COLOR)
-        template = self.align_images(template)
+        if align:
+            template = self.align_images(template)
         h, w, _ = template.shape
 
         result = cv2.matchTemplate(screenshot, template, cv2.TM_CCOEFF_NORMED)
@@ -112,7 +114,7 @@ class FMV_handler:
                     return self.get_item_position(region, f"{name}_{number}.png", retries - 1)
                 except ValueError:
                     time.sleep(1)
-                    return self.get_item_position(region, item_name, retries - 1)
+                    return self.get_item_position(region, item_name, retries - 1, align=align)
             else:
                 # print(f"Max retries reached. Unable to find the {item_name}.")
                 return position(None, None)
