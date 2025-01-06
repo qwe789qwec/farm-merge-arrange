@@ -106,8 +106,8 @@ class FMV_handler:
             # print(f"No matching window found! Retries left: {retries}")
             if retries > 0:
                 only_item_name = item_name[:-4]
-                name, number = only_item_name.split('_')
                 try:
+                    name, number = only_item_name.split('_')
                     number = int(number) + 1
                     return self.get_item_position(region, f"{name}_{number}.png", retries - 1)
                 except ValueError:
