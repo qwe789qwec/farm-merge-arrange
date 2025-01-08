@@ -20,6 +20,8 @@ RELATIVE = {
     'drag_y': -250,
     'slot_x': -85,
     'slot_y': -15,
+    'box_x': -700,
+    'box_y': -50,
 }
 
 SIZE = {

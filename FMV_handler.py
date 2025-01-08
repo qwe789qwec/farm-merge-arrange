@@ -57,6 +57,8 @@ class FMV_handler:
                                 int(config.SIZE['game_height'] * self.scale.h))
         self.drag = position(self.game_ref.x + int(config.RELATIVE['drag_x'] * self.scale.w),
                              self.game_ref.y + int(config.RELATIVE['drag_y'] * self.scale.h))
+        self.box = position(self.game_ref.x + int(config.RELATIVE['box_x'] * self.scale.w),
+                            self.game_ref.y + int(config.RELATIVE['box_y'] * self.scale.h))
     
     def init_parameters(self):
         # (777, 348) (844, 315) (777, 282)

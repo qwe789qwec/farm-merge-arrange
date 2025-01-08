@@ -1,6 +1,9 @@
 from FMV_handler import FMV_handler as fmv
 import config
 import time
+import pyautogui
+
+start_time = time.time()
 
 scna_size = 9
 game = fmv(scan_size=scna_size)
@@ -9,7 +12,7 @@ items = game.compare_slot_image()
 
 last_i = 0
 last_j = 0
-limit = 10
+limit = 11
 visited = set()
 
 def get_position(matrix, target):
@@ -34,8 +37,8 @@ def get_last_position(x, y):
     
     return next_index[0][0], next_index[0][1]
 
-game.init_screen_position()
-game.screen_slider(game.slot_gap_y*(config.SIZE['init_scan_position'] + 1))
+# game.init_screen_position()
+game.screen_slider(-game.slot_gap_y*((2.6*2)-1))
 play_pos = game.get_play_initial_position()
 for row in items:
     print(row)
@@ -83,10 +86,12 @@ for row_index, row in enumerate(items):
                 items[from_row][from_col] = items[next_row][next_col]
                 items[next_row][next_col] = swap_item
                 next_row, next_col = get_next_position(next_row, next_col)
+            if count >= 4:
+                break
 
 if config.BASIC['auto_combine']:
-    game.init_screen_position()
-    game.screen_slider(game.slot_gap_y*(config.SIZE['init_scan_position'] + 1))
+    combinations = 0
+    game.screen_slider(-(game.slot_gap_y*2))
     play_pos = game.get_play_initial_position()
     count = 0
     for row_index, row in enumerate(items):
@@ -98,6 +103,7 @@ if config.BASIC['auto_combine']:
         for col_index in range_cols:
             item = row[col_index]
             if col_index > limit or item <= 0:
+                count = 0
                 continue
             if last_item == item:
                 count = count + 1
@@ -110,9 +116,17 @@ if config.BASIC['auto_combine']:
                 play_now = game.slot_calculator_dia(play_pos, col_index, row_index)
                 play_last = game.slot_calculator_dia(play_pos, last_col, last_row)
                 game.swap_item(play_now, play_last)
-                # time.sleep(1)
+                combinations = combinations + 1
                 count = 0
+
+    time.sleep(1)
+    pyautogui.moveTo(game.box.x, game.box.y)
+    pyautogui.click(clicks = combinations * 3)
 
 print(move_times)
 for row in items:
     print(row)
+
+end_time = time.time()
+execution_time = (end_time - start_time) / 60
+print(f"total time: {execution_time:.2f} minutes")

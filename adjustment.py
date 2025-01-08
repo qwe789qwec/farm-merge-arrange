@@ -3,6 +3,7 @@ import cv2
 from collections import namedtuple
 import config
 import pyautogui
+import time
 
 position = namedtuple('position', ['x', 'y'])
 region = namedtuple('region', ['x', 'y', 'w', 'h'])
@@ -22,6 +23,9 @@ if game.game_ref.x is not None:
     print(f"init position: ({game.game_ref.x}, {game.game_ref.y})")
     game_area = game.take_screenshot(region = game.game_area)
     game.save_image(game_area, "buttons", "game_area_")
+    pyautogui.moveTo(game.box.x, game.box.y)
+    print(f"box position: ({game.box.x}, {game.box.y})")
+    time.sleep(3)
 else:
     print("game not found check the screen_ref or dictionary image")
     exit()
