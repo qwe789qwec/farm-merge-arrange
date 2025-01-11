@@ -18,6 +18,7 @@ temp_dir = "temp_images"
 class FMV_handler:
     def __init__(self, scan_size):
         pyautogui.PAUSE = config.BASIC['mouse_speed']*0.1
+        pyautogui.FAILSAFE = True
         os.makedirs(temp_dir, exist_ok=True)
         capture = cv2.imread(config.BASIC['screen_ref'])
         base_height, base_width, _ = capture.shape
@@ -137,8 +138,8 @@ class FMV_handler:
         pyautogui.moveTo(self.drag.x, self.drag.y)
         time.sleep(0.3)
         pyautogui.mouseDown(button='left')
-        pyautogui.move(0, distance * (1 + config.BASIC['drag_fix']), duration=config.BASIC['mouse_speed'])
-        pyautogui.move(0, -distance * config.BASIC['drag_fix'], duration=config.BASIC['mouse_speed'])
+        pyautogui.move(0, distance * (1 + config.BASIC['drag_fix']), duration=config.BASIC['mouse_speed']/1.5)
+        pyautogui.move(0, -distance * config.BASIC['drag_fix'], duration=config.BASIC['mouse_speed']/1.5)
         time.sleep(config.BASIC['mouse_speed']*0.3)
         pyautogui.mouseUp(button='left')
 
@@ -191,7 +192,7 @@ class FMV_handler:
                     slot_img = game_image[slot_region.y:slot_region.y + self.slot_size.h, slot_region.x:slot_region.x + self.slot_size.w]
                     self.save_image(slot_img, temp_dir)
             if i < len(self.farm_shape1)-3:
-                self.screen_slider(self.slot_gap_y*2.6)
+                self.screen_slider(self.slot_gap_y*2.3)
 
     def compare_slot_image(self):
         # load images
@@ -286,7 +287,7 @@ class FMV_handler:
                     if score > max_match_value:
                         max_match_value = score
                         matching_item_id = item_folder
-            if score > 0.8 and matching_item_id is not None:
+            if score > 0.9 and matching_item_id is not None:
                 break
 
         # if no matching item found, create a new folder
@@ -303,8 +304,8 @@ class FMV_handler:
             cv2.imwrite(os.path.join("item_template", new_item_id, f"{image_index}.png"), save_img)
             matching_item_id = new_item_id
         else:
-            if max_match_value < 0.8:
-                image_index = self.get_next_path_id(os.path.join("item_template", matching_item_id))
+            image_index = self.get_next_path_id(os.path.join("item_template", matching_item_id))
+            if max_match_value < 0.7:
                 save_img = self.crop_image(slot_image, self.item_size)
                 cv2.imwrite(os.path.join("item_template", matching_item_id, f"{image_index}.png"), save_img)
 
