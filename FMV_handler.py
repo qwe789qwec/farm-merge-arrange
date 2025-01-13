@@ -16,9 +16,11 @@ size = namedtuple('size', ['w', 'h'])
 temp_dir = "temp_images"
 
 class FMV_handler:
-    def __init__(self, scan_size):
+    def __init__(self, scan_size = config.BASIC['farm_size']):
         pyautogui.PAUSE = config.BASIC['mouse_speed']*0.1
         pyautogui.FAILSAFE = True
+        screen_width, screen_height = pyautogui.size()
+        pyautogui.FAILSAFE_POINTS = [(screen_width - 1, screen_height - 1)]
         os.makedirs(temp_dir, exist_ok=True)
         capture = cv2.imread(config.BASIC['screen_ref'])
         base_height, base_width, _ = capture.shape
@@ -30,9 +32,8 @@ class FMV_handler:
         else:
             self.scale = size(1, 1)
 
-
         self.item_dir = 'item_template'
-        self.scan_size = 9
+        self.scan_size = scan_size
         self.init_mouse_position()
         self.init_parameters()
         # 9-17
@@ -76,16 +77,6 @@ class FMV_handler:
                                       int(config.RELATIVE['slot_y'] * self.scale.h))
 
         self.farm_shape1 = [9, 10, 11, 12, 13, 14, 15, 16, 17]
-
-        self.scan_index = []
-        current_index = 0
-        for row_size in self.farm_shape1:
-            if row_size % 2 == 1:
-                row = np.arange(current_index, current_index + row_size)
-            else:
-                row = np.arange(current_index + row_size - 1, current_index - 1, -1)
-            self.scan_index.append(row)
-            current_index += row_size
 
     def take_screenshot(self, region=None):
         screenshot = pyautogui.screenshot()
@@ -142,6 +133,17 @@ class FMV_handler:
         pyautogui.move(0, -distance * config.BASIC['drag_fix'], duration=config.BASIC['mouse_speed']/1.5)
         time.sleep(config.BASIC['mouse_speed']*0.3)
         pyautogui.mouseUp(button='left')
+
+    def click_item(self, item_name, retry = 3):
+        print("Finding item: ", item_name)
+        item_pos = self.get_item_position(region=self.game_area, item_name=item_name, retries=retry , align= False)
+        if item_pos.x is not None:
+            mov_pos = self.game_to_screen(item_pos)
+            pyautogui.moveTo(mov_pos.x, mov_pos.y)
+            pyautogui.click()
+            time.sleep(0.1)
+            return True
+        return False
 
     def slot_calculator(self, pos, dir_x, dir_y):
         goal_x = int(pos.x + self.slot_gap * dir_x * np.cos(self.slot_angle))

@@ -6,11 +6,13 @@ BASIC = {
     'mouse_speed': 1,
     'get_farm': False,
     'farm_size': 9,
+    'auto_farm': True,
     'auto_combine': False,
+    'auto_train': False,
 }
 
 TRAIN = {
-    'times': 10,
+    'times': 1,
 }
 
 RELATIVE = {
