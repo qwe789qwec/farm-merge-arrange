@@ -7,12 +7,12 @@ import pyautogui
 start_time = time.time()
 
 class FMV_arrange:
-    def __init__(self):
+    def __init__(self, limit = 11):
         self.game = fmv()
-        self.limit = 12
+        self.limit = limit
         self.arrange_flag = False
         self.stop_flag = False
-        self.buttons_list = ["buttons/train_gift.png",
+        self.buttons_list = ["buttons/train_box.png",
                             "buttons/train_coin.png",
                             "buttons/train_water.png",
                             "buttons/train_heart.png",
@@ -70,7 +70,8 @@ class FMV_arrange:
             range_cols = range(len(row)) if row_index % 2 == 0 else range(len(row) - 1, -1, -1)
             for col_index in range_cols:
                 item = row[col_index]
-                if item <= -2:
+                if item <= -2 or (item >= 0 and (item % 5 == 4 or item % 5 == 0)):
+                    print("stop item: ", item)
                     self.stop_flag = True
                     break
                 if col_index > self.limit or item <= 0 or item == 200:
@@ -111,6 +112,7 @@ class FMV_arrange:
             if self.stop_flag:
                 break
             self.arrange_flag = True
+            self.game.rebuild_tempfile()
 
     def run_combine(self):
         combinations = 0
@@ -144,7 +146,7 @@ class FMV_arrange:
                 if count >= 4:
                     cols_len = len(range_cols)
                     last_row, last_col = self.get_rel_position(row_index, col_index, -1)
-                    if cols_len == last_col:
+                    if (cols_len-1) == col_index:
                         play_now = self.game.slot_calculator_dia(self.play_pos, last_row, last_col)
                         last_row, last_col = self.get_rel_position(last_row, last_col, -1)
                     else:
@@ -157,23 +159,31 @@ class FMV_arrange:
         time.sleep(1)
         pyautogui.moveTo(self.game.box.x, self.game.box.y)
         pyautogui.click(clicks = combinations * 3)
+        if combinations == 0:
+            self.stop_flag = True
 
     def run_train(self, times = config.TRAIN['times']):
         run_times = 0
+        time.sleep(5)
         while run_times < times:
             self.game.click_item("buttons/train.png")
             if not self.game.click_item("buttons/train_ticket.png"):
                 self.game.init_screen_position()
                 self.game.screen_slider(self.game.slot_gap_y*7)
-                if not self.click_item("buttons/train_ticket.png"):
+                if not self.game.click_item("buttons/train_ticket.png"):
                     print("Unable to find the ticket.")
                     break
+            else:
+                print("get ticket")
+
             time.sleep(2)
-            if not self.game.click_item("buttons/train_visit.png"):
+            if not self.game.click_item("buttons/train_visit_B.png"):
                 time.sleep(2)
-                if not self.game.click_item("buttons/train_visit.png"):
+                if not self.game.click_item("buttons/train_visit_B.png"):
                     print("Unable to find the visit button.")
                     break
+            else:
+                print("visiting")
             time.sleep(5)
             visit = set()
             finished_flag = False
@@ -186,6 +196,7 @@ class FMV_arrange:
                     visit.add(button)
                     if button == "buttons/train_finish.png":
                         finished_flag = True
+                        print("finished")
                         break
                 if finished_flag:
                     break
@@ -198,7 +209,8 @@ class FMV_arrange:
             if not self.game.click_item("buttons/train_return.png"):
                 print("Unable to find the return button.")
                 break
-            time.sleep(5)
-            
-        if run_times == times:
+            else:
+                print("returning")
+
+        if run_times >= 3:
             self.stop_flag = True

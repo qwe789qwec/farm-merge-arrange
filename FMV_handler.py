@@ -135,7 +135,6 @@ class FMV_handler:
         pyautogui.mouseUp(button='left')
 
     def click_item(self, item_name, retry = 3):
-        print("Finding item: ", item_name)
         item_pos = self.get_item_position(region=self.game_area, item_name=item_name, retries=retry , align= False)
         if item_pos.x is not None:
             mov_pos = self.game_to_screen(item_pos)
@@ -220,7 +219,7 @@ class FMV_handler:
                 cross_compare.append(key)
         
         visited = set()
-        compare_id = 200
+        compare_id = 210
         for key in cross_compare:
             if key in visited:
                 continue
@@ -348,5 +347,9 @@ class FMV_handler:
 
         return max(existing_ids) + 1
     
+    def rebuild_tempfile(self):
+        shutil.rmtree(temp_dir)
+        os.makedirs(temp_dir, exist_ok=True)
+
     def __del__(self):
         shutil.rmtree(temp_dir)
