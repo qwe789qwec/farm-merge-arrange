@@ -12,7 +12,7 @@ items = game.compare_slot_image()
 
 last_i = 0
 last_j = 0
-limit = 13
+limit = 12
 visited = set()
 
 def get_position(matrix, target):
@@ -31,9 +31,9 @@ def get_next_position(x, y):
     
     return next_index[0][0], next_index[0][1]
 
-def get_last_position2(x, y):
+def get_last_position(x, y):
     index = game.scan_index[x][y]
-    next_index = get_position(game.scan_index, index - 2)
+    next_index = get_position(game.scan_index, index - 1)
     
     return next_index[0][0], next_index[0][1]
 
@@ -112,7 +112,7 @@ if config.BASIC['auto_combine']:
                 last_item = item
 
             if count >= 4:
-                last_row, last_col = get_last_position2(row_index, col_index)
+                last_row, last_col = get_last_position(row_index, col_index)
                 play_now = game.slot_calculator_dia(play_pos, col_index, row_index)
                 play_last = game.slot_calculator_dia(play_pos, last_col, last_row)
                 game.swap_item(play_now, play_last)
