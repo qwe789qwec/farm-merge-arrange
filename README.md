@@ -29,26 +29,55 @@ If the script does not work as expected, proceed to the adjustment steps below.
 Follow these steps carefully to ensure a smooth setup and operation. If you have any questions or need further assistance, don’t hesitate to reach out!
 
 ## 如何安裝
-1. 你的電腦必須安裝 python 和 OpenCV.
-   * 如果有其他沒安裝到的可以參考`requirements.txt`
-2. 然後直接執行`FMV_arrange.py`  
-如果無法執行可以試試按照下面的調整步驟。  
-或可能是某些插件沒安裝，就debug看看吧,之後在上requirement。
+1. 請先下載並安裝python.
+2. 可略過本步驟，但是建議依照以下步驟建立環境。
+   ```
+   python3 -m venv FMV
+   source myenv/bin/activate
+   ```
+4. 安裝依賴項
+   ```
+   pip install -r requirements.txt
+   ```
+6. 安裝完之後建議執行調整步驟
 ## 注意事項
 1. 目前只針對第一塊農場做排序
 2. 因為排序演算法是基於互換原則，所以建議第一第二區都要是滿的，不然物件會亂跑。
 3. 建議單人遊戲遊玩，不然玩家加入視窗可能會點到。
+4. 自動合成目前並不完善，可能沒辦法總是5和2。
+5. 目前對 2k 和 4k 的畫面測試不足可能會有未知的問題。
 ## 調整步驟
-1. 運行 `adjustment.py`。
-2. 如果程式顯示「無法獲取視窗位置 (Failed to get window position.)」，請手動更新 `gift_button.png` 圖片：
-   * 將更新後的圖片替換至 buttons 資料夾中覆蓋原文件。
-   * 或者將自定義圖片放入 buttons 資料夾，並在 config.py 中將 scan_screen 設置為新圖片的名稱。
-3. 如果成功截取遊戲畫面，請檢查 buttons 資料夾中是否有類似於 `example.png` 的圖片。
-4. 調整 `config.py` 中的 `slant_distance` 和 `vertical_distance` 值，以確保物品位於顯示的矩形內例如`example.png`。
-5. 完成所有調整後，重新運行 FMV_arrange.py 以驗證功能。
+1. 運行調整腳本
+   ```
+   python adjustment.py
+   ```
+2. 如果程式顯示「`game not found check the screen_ref or dictionary image`」，請手動更新 `buttons/dictionary.png` 與 `buttons/screen_ref.png` 圖片：
+   * 將更新後的圖片替換至 `buttons` 資料夾中覆蓋原文件。
+   * 或者將自定義圖片放入 `buttons` 資料夾，並在 `config.py` 中將 `scan_screen` 設置為新圖片的名稱。
+3. 如果成功擷取畫面會出現 `game_area_x.png` 這是程式的掃描範圍
+   * 可以透過調整 `config.py` 文件中的參數改變掃描範圍。
+   * `game_x` 與 `game_y` 是起始位置也就是圖片左上角的位置。
+   * `game_width` 與 `game_height` 是掃描的範圍大小。
+4. 如果程式顯示「`slot not found check the slot_ref image`」，請手動更新 `buttons/farm_1.png` 圖片，替換方式同步驟 2。
+5. 如果成功掃描畫面會出現 `game_scan_x.png` 這是程式的掃描位置
+   * 可以透過調整 `config.py` 文件中的參數改變掃描位置。
+   * `slant_distance` 是每個物件的斜角距離。
+   * `vertical_distance` 是每個物件的垂直距離。
+   * 調整結果可以參考 `example.png`。
+6. 在 `config.py` 內可以設定功能
+   * `auto_farm` 自動農場整理。
+   * `auto_combine` 自動物件合成(建議搭配自動整理)。
+   * `auto_train`  自動火車。
+7. 完成所有調整後，運行主程式
+   ```
+   python FMV_main.py
+   ```
 ## 疑難排解
 1. 確保遊戲畫面顯示在最前方，否則程式可能無法捕捉畫面。
-2. Windows 可能會有多餘的螢幕滑動，改變`config.py` 裡面的 `slide_speed` 來修正。
+2. Windows 可能會有多餘的螢幕滑動，建議的 `config.py` 修正。
+   * `drag_fix` 建議設定0.01以上。
+   * `mouse_speed` 建議設定6以上。
+   * 以上可以自行調整測試自己最適合的速度
 3. 可能仍會遇到其他問題，可以跟我回報您遇到的問題。
 
 請仔細按照這些步驟操作，以確保順利完成設定和使用。如果有任何疑問或需要進一步的幫助，請隨時與我聯繫！
