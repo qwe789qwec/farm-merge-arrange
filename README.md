@@ -19,6 +19,7 @@ This guide provides instructions on how to set up and troubleshoot the FMV_arran
 3. It is recommended to play the game in single player, otherwise the player joining window may be clicked.
 4. The auto-combine is still under development and may not always achieve 5 combine.
 5. Limited testing has been conducted for 2K and 4K displays, so issues may arise.
+6. Mouse over the bottom right corner of the screen during program execution to force an end to the run.
 ## Adjustment Steps
 1. Run the adjustment script:
    ```
@@ -72,6 +73,7 @@ Follow these steps carefully to ensure a smooth setup and operation. If you have
 3. 建議單人遊戲遊玩，不然玩家加入視窗可能會點到。
 4. 自動合成目前並不完善，可能沒辦法總是5和2。
 5. 目前對 2k 和 4k 的畫面測試不足可能會有未知的問題。
+6. 在程式執行中將滑鼠移至螢幕右下角強制結束運行。
 ## 調整步驟
 1. 運行調整腳本:
    ```
