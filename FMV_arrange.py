@@ -176,7 +176,7 @@ class FMV_arrange:
             else:
                 print("get ticket")
 
-            time.sleep(2)
+            time.sleep(3)
             if not self.game.click_item("buttons/train_visit_B.png"):
                 time.sleep(2)
                 if not self.game.click_item("buttons/train_visit_B.png"):
@@ -187,7 +187,7 @@ class FMV_arrange:
             time.sleep(5)
             visit = set()
             finished_flag = False
-            for slider_times in range(8):
+            for slider_times in range(9):
                 for button in self.buttons_list:
                     if button in visit:
                         continue
