@@ -19,7 +19,7 @@ This guide provides instructions on how to set up and troubleshoot the FMV_arran
 3. It is recommended to play the game in single player, otherwise the player joining window may be clicked.
 4. The auto-combine is still under development and may not always achieve 5 combine.
 5. Limited testing has been conducted for 2K and 4K displays, so issues may arise.
-6. Mouse over the bottom right corner of the screen during program execution to force an end to the run.
+6. Mouse over the bottom right corner of the screen during program execution to force an end to the program.
 ## Adjustment Steps
 1. Run the adjustment script:
    ```
