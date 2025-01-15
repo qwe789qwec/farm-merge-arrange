@@ -7,7 +7,7 @@ import pyautogui
 start_time = time.time()
 
 class FMV_arrange:
-    def __init__(self, limit = 11):
+    def __init__(self, limit = config.BASIC['farm_size']):
         self.game = fmv()
         self.limit = limit
         self.arrange_flag = False
@@ -34,12 +34,13 @@ class FMV_arrange:
         self.game.capture_slot()
         self.items = self.game.compare_slot_image()
 
-    def get_position(self, matrix, target):
+    def get_position(self, matrix, col, row):
         positions = []
+        target = matrix[row][col]
 
         for row_index, row in enumerate(matrix):
             for col_index, element in enumerate(row):
-                if element == target:
+                if element == target and (row_index, col_index) != (row, col):
                     positions.append((row_index, col_index))
 
         return positions
@@ -53,6 +54,110 @@ class FMV_arrange:
     def print_items(self):
         for row in self.items:
             print(row)
+
+    def valid_position(self, col, row):
+        if row < 0 or row >= len(self.items):
+            print("check row:", row)
+            print("row length:", len(self.items))
+            return False
+        if col < 0 or col >= len(self.items[row]):
+            print("check col:", col)
+            return False
+        if (col + row) > self.limit:
+            return False
+        if self.items[col][row] == -1:
+            return False
+        print("pass row: ", row, "pass col: ", col)
+        print("item: ", self.items[col][row])
+        return True
+
+    def find_connected_elements(self, start_row, start_col):
+        target_value = self.items[start_row][start_col]
+        visited = set()
+        result = []
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        queue = [(start_row, start_col)]
+        visited.add((start_row, start_col))
+
+        while queue:
+            current_row, current_col = queue.pop(0)
+            result.append((current_row, current_col))
+
+            for dr, dc in directions:
+                new_row, new_col = current_row + dr, current_col + dc
+                if (new_row != 0 or new_col != 0):
+                    if (self.valid_position(new_col, new_row) and
+                        (new_row, new_col) not in visited):
+                        if self.items[new_row][new_col] == target_value:
+                            queue.append((new_row, new_col))
+                            visited.add((new_row, new_col))
+        return result
+
+    def run_arrange2(self):
+        self.game.screen_slider(-self.game.slot_gap_y*((2.3*2)-1))
+        self.play_pos = self.game.get_play_initial_position()
+        directions = [(0, -1), (-1, 0), (1, 0), (0, 1)]
+        visited = set()
+        item_count = 0
+        for row_index, row in enumerate(self.items):
+            if row_index == 2 or row_index == 3:
+                self.game.screen_slider(self.game.slot_gap_y)
+                self.play_pos = self.game.get_play_initial_position()
+                self.limit = self.limit + 1
+            for col_index, item in enumerate(row):
+                if not self.valid_position(col_index, row_index):
+                    continue
+                if item <= -2 or (item >= 0 and (item % 5 == 4 or item % 5 == 0)):
+                    print("stop item: ", item)
+                    self.stop_flag = True
+                    break
+                item_pos = self.get_position(self.items, col_index, row_index)
+                if len(item_pos) == 0:
+                    continue
+                connected_item = self.find_connected_elements(row_index, col_index)
+                item_count = len(connected_item)
+                for position in connected_item:
+                    visited.add(position)
+
+                for position in item_pos:
+                    item_row, item_col = position
+                    if not self.valid_position(item_col, item_row):
+                        continue
+                    if (item_row, item_col) in visited:
+                        continue
+                    for dr, dc in directions:
+                        if item_count >= 5:
+                            break
+                        next_row, next_col = row_index + dr, col_index + dc
+                        if not self.valid_position(next_row, next_col):
+                            continue
+                        # if self.items[next_row][next_col] == item:
+                        #     visited.add((next_row, next_col))
+                        try:
+                            if self.items[next_row][next_col] == item:
+                                visited.add((next_row, next_col))
+                        except IndexError:
+                            print("row: ", next_row, "col: ", next_col)
+                            break
+                        if (next_row, next_col) in visited:
+                            continue
+                        play_next = self.game.slot_calculator_dia(self.play_pos, next_col, next_row)
+                        play_from = self.game.slot_calculator_dia(self.play_pos, item_col, item_row)
+                        self.game.swap_item(play_from, play_next)
+                        swap_item = self.items[item_row][item_col]
+                        self.items[item_row][item_col] = self.items[next_row][next_col]
+                        self.items[next_row][next_col] = swap_item
+                        visited.add((next_row, next_col))
+                        item_count = item_count + 1
+                        break
+ 
+        if not config.BASIC['auto_combine']:
+            self.stop_flag = True
+        else:
+            self.arrange_flag = True
+            self.game.rebuild_tempfile()
+
+
     
     def run_arrange(self):
         self.game.screen_slider(-self.game.slot_gap_y*((2.3*2)-1))
@@ -111,6 +216,10 @@ class FMV_arrange:
 
             if self.stop_flag:
                 break
+
+        if not config.BASIC['auto_combine']:
+            self.stop_flag = True
+        else:
             self.arrange_flag = True
             self.game.rebuild_tempfile()
 

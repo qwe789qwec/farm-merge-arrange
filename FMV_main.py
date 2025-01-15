@@ -8,7 +8,8 @@ arrange = fmv_arrange()
 while True:
     if config.BASIC['auto_farm']:
         arrange.scan_slot()
-        arrange.run_arrange()
+        arrange.print_items()
+        arrange.run_arrange2()
         
     if arrange.stop_flag:
         print("auto farm stopped")
