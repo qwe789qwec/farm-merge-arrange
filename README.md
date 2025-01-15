@@ -6,7 +6,7 @@ This guide provides instructions on how to set up and troubleshoot the FMV_arran
 2. Create a Virtual Environment (Optional but Recommended):
    ```
    python3 -m venv FMV
-   source myenv/bin/activate
+   source FMV/bin/activate
    ```
 3. Install Dependencies:
    ```
@@ -60,7 +60,7 @@ Follow these steps carefully to ensure a smooth setup and operation. If you have
 2. 建立虛擬環境（可選但建議）:
    ```
    python3 -m venv FMV
-   source myenv/bin/activate
+   source FMV/bin/activate
    ```
 3. 安裝依賴項:
    ```
