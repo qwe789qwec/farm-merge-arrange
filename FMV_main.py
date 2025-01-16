@@ -9,7 +9,10 @@ while True:
     if config.BASIC['auto_farm']:
         arrange.scan_slot()
         arrange.print_items()
-        arrange.run_arrange2()
+        if config.BASIC['arrange_method'] == 'cluster':
+            arrange.run_arrange2()
+        else:
+            arrange.run_arrange()
         arrange.print_items()
         
     if arrange.stop_flag:
@@ -25,17 +28,18 @@ while True:
         print("no combine stopped")
         break
 
-    if config.BASIC['auto_train']:
-        if config.BASIC['auto_combine']:
-            if arrange.game.click_item("buttons/item_ticket.png"):
+    if config.BASIC['auto_combine']:
+        if arrange.game.click_item("buttons/item_ticket.png", retry=1):
+            pyautogui.moveTo(arrange.game.box.x, arrange.game.box.y)
+            pyautogui.click()
+        else:
+            arrange.game.init_screen_position()
+            arrange.game.screen_slider(arrange.game.slot_gap_y*7)
+            if arrange.game.click_item("buttons/item_ticket.png", retry=1):
                 pyautogui.moveTo(arrange.game.box.x, arrange.game.box.y)
                 pyautogui.click()
-            else:
-                arrange.game.init_screen_position()
-                arrange.game.screen_slider(arrange.game.slot_gap_y*7)
-                if arrange.game.click_item("buttons/item_ticket.png"):
-                    pyautogui.moveTo(arrange.game.box.x, arrange.game.box.y)
-                    pyautogui.click()
+
+    if config.BASIC['auto_train']:
         arrange.run_train()
         if config.BASIC['auto_farm']:
             time.sleep(3)

@@ -371,7 +371,7 @@ class FMV_arrange:
                 for button in self.buttons_list:
                     if button in visit:
                         continue
-                    if not self.game.click_item(button, retry = 1):
+                    if not self.game.click_item(button, retry = 0):
                         continue
                     visit.add(button)
                     if button == "buttons/train_finish.png":

@@ -6,6 +6,7 @@ BASIC = {
     'mouse_speed': 1,
     'get_farm': False,
     'farm_size': 16,
+    'arrange_method': 'cluster',
     'auto_farm': True,
     'auto_combine': True,
     'auto_train': False,
