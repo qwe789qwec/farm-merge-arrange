@@ -34,7 +34,7 @@ class FMV_arrange:
         self.game.capture_slot()
         self.items = self.game.compare_slot_image()
 
-    def get_position(self, matrix, col, row):
+    def get_position(self, matrix, row, col):
         positions = []
         target = matrix[row][col]
 
@@ -55,20 +55,23 @@ class FMV_arrange:
         for row in self.items:
             print(row)
 
-    def valid_position(self, col, row):
+    def valid_position(self, row, col):
+        # print("check row: ", row, "check col: ", col)
         if row < 0 or row >= len(self.items):
-            print("check row:", row)
-            print("row length:", len(self.items))
+            # print("check row:", row)
+            # print("row length:", len(self.items))
             return False
         if col < 0 or col >= len(self.items[row]):
-            print("check col:", col)
+            # print("check col:", col)
+            # print("col length:", len(self.items[row]))
             return False
-        if (col + row) > self.limit:
+        if (row + col) >= self.limit:
+            # print("limit: ", self.limit)
             return False
-        if self.items[col][row] == -1:
+        if self.items[row][col] == -1:
+            # print("row: ", row, "col: ", col,"got -1")
             return False
-        print("pass row: ", row, "pass col: ", col)
-        print("item: ", self.items[col][row])
+        # print("item: ", self.items[row][col])
         return True
 
     def find_connected_elements(self, start_row, start_col):
@@ -86,7 +89,7 @@ class FMV_arrange:
             for dr, dc in directions:
                 new_row, new_col = current_row + dr, current_col + dc
                 if (new_row != 0 or new_col != 0):
-                    if (self.valid_position(new_col, new_row) and
+                    if (self.valid_position(new_row, new_col) and
                         (new_row, new_col) not in visited):
                         if self.items[new_row][new_col] == target_value:
                             queue.append((new_row, new_col))
@@ -99,19 +102,20 @@ class FMV_arrange:
         directions = [(0, -1), (-1, 0), (1, 0), (0, 1)]
         visited = set()
         item_count = 0
+        self.limit = config.BASIC['farm_size']
         for row_index, row in enumerate(self.items):
             if row_index == 2 or row_index == 3:
                 self.game.screen_slider(self.game.slot_gap_y)
                 self.play_pos = self.game.get_play_initial_position()
-                self.limit = self.limit + 1
+                self.limit = self.limit + 2.5
             for col_index, item in enumerate(row):
-                if not self.valid_position(col_index, row_index):
+                if not self.valid_position(row_index, col_index):
                     continue
                 if item <= -2 or (item >= 0 and (item % 5 == 4 or item % 5 == 0)):
-                    print("stop item: ", item)
+                    # print("stop item: ", item)
                     self.stop_flag = True
                     break
-                item_pos = self.get_position(self.items, col_index, row_index)
+                item_pos = self.get_position(self.items, row_index, col_index)
                 if len(item_pos) == 0:
                     continue
                 connected_item = self.find_connected_elements(row_index, col_index)
@@ -121,26 +125,30 @@ class FMV_arrange:
 
                 for position in item_pos:
                     item_row, item_col = position
-                    if not self.valid_position(item_col, item_row):
+                    if item_count >= 5:
+                        break
+                    if not self.valid_position(item_row, item_col):
                         continue
                     if (item_row, item_col) in visited:
                         continue
                     for dr, dc in directions:
-                        if item_count >= 5:
-                            break
                         next_row, next_col = row_index + dr, col_index + dc
                         if not self.valid_position(next_row, next_col):
                             continue
-                        # if self.items[next_row][next_col] == item:
-                        #     visited.add((next_row, next_col))
-                        try:
-                            if self.items[next_row][next_col] == item:
-                                visited.add((next_row, next_col))
-                        except IndexError:
-                            print("row: ", next_row, "col: ", next_col)
-                            break
                         if (next_row, next_col) in visited:
                             continue
+                        if self.items[next_row][next_col] == item:
+                            visited.add((next_row, next_col))
+                            continue
+                        # try:
+                        #     if self.items[next_row][next_col] == item:
+                        #         visited.add((next_row, next_col))
+                        #         continue
+                        # except IndexError:
+                        #     print("row: ", next_row, "col: ", next_col)
+                        #     break
+                        # print("swap item:", self.items[item_row][item_col], "to:", self.items[next_row][next_col])
+                        # print("swap item from: ", item_row, item_col, "to: ", next_row, next_col)
                         play_next = self.game.slot_calculator_dia(self.play_pos, next_col, next_row)
                         play_from = self.game.slot_calculator_dia(self.play_pos, item_col, item_row)
                         self.game.swap_item(play_from, play_next)
@@ -264,6 +272,65 @@ class FMV_arrange:
                     self.game.swap_item(play_now, play_last)
                     combinations = combinations + 1
                     count = 0
+
+        time.sleep(1)
+        pyautogui.moveTo(self.game.box.x, self.game.box.y)
+        pyautogui.click(clicks = combinations * 3)
+        if combinations == 0:
+            self.stop_flag = True
+
+    def run_combine2(self):
+        combinations = 0
+        self.game.screen_slider(-(self.game.slot_gap_y*2))
+        self.play_pos = self.game.get_play_initial_position()
+        count = 0
+        self.limit = config.BASIC['farm_size']
+        visited = set()
+        ticket_pos = None
+        for row_index, row in enumerate(self.items):
+            if row_index == 2 or row_index == 3:
+                self.game.screen_slider(self.game.slot_gap_y)
+                self.play_pos = self.game.get_play_initial_position()
+                self.limit = self.limit + 2.5
+            for col_index, item in enumerate(row):
+                if item == 200:
+                    ticket_pos = (row_index, col_index)
+                if not self.valid_position(row_index, col_index):
+                    continue
+                if (row_index, col_index) in visited:
+                    continue
+                item_pos = self.find_connected_elements(row_index, col_index)
+                for position in item_pos:
+                    visited.add(position)
+                if len(item_pos) < 4:
+                    continue
+                if len(item_pos) == 4:
+                    all_item_pos = self.get_position(self.items, row_index, col_index)
+                    if len(all_item_pos) > 4:
+                        for position in all_item_pos:
+                            if position in visited:
+                                continue
+                            if not self.valid_position(position[0], position[1]):
+                                continue
+                            play_other = self.game.slot_calculator_dia(self.play_pos, position[1], position[0])
+                            play_first = self.game.slot_calculator_dia(self.play_pos, col_index, row_index)
+                            self.game.swap_item(play_other, play_first)
+                            combinations = combinations + 1
+                if len(item_pos) > 4:
+                    if not self.valid_position(item_pos[4][0], item_pos[4][1]):
+                        continue
+                    play_other = self.game.slot_calculator_dia(self.play_pos, item_pos[4][1], item_pos[4][0])
+                    play_first = self.game.slot_calculator_dia(self.play_pos, col_index, row_index)
+                    self.game.swap_item(play_other, play_first)
+                    combinations = combinations + 1
+
+        if ticket_pos is not None:
+            row, col = ticket_pos
+            play_now = self.game.slot_calculator_dia(self.play_pos, col, row)
+            pyautogui.moveTo(play_now.x, play_now.y)
+            pyautogui.click()
+            pyautogui.moveTo(self.game.box.x, self.game.box.y)
+            pyautogui.click()
 
         time.sleep(1)
         pyautogui.moveTo(self.game.box.x, self.game.box.y)

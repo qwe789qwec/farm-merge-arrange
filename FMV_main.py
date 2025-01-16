@@ -10,6 +10,7 @@ while True:
         arrange.scan_slot()
         arrange.print_items()
         arrange.run_arrange2()
+        arrange.print_items()
         
     if arrange.stop_flag:
         print("auto farm stopped")
@@ -18,7 +19,7 @@ while True:
     if config.BASIC['auto_combine']:
         if not arrange.arrange_flag:
             arrange.scan_slot()
-        arrange.run_combine()
+        arrange.run_combine2()
 
     if arrange.stop_flag:
         print("no combine stopped")
