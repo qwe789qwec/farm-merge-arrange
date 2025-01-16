@@ -302,9 +302,10 @@ class FMV_arrange:
                 item_pos = self.find_connected_elements(row_index, col_index)
                 for position in item_pos:
                     visited.add(position)
-                if len(item_pos) < 4:
+                item_num = len(item_pos)
+                if item_num < 4:
                     continue
-                if len(item_pos) == 4:
+                if item_num == 4:
                     all_item_pos = self.get_position(self.items, row_index, col_index)
                     if len(all_item_pos) > 4:
                         for position in all_item_pos:
@@ -315,14 +316,17 @@ class FMV_arrange:
                             play_other = self.game.slot_calculator_dia(self.play_pos, position[1], position[0])
                             play_first = self.game.slot_calculator_dia(self.play_pos, col_index, row_index)
                             self.game.swap_item(play_other, play_first)
-                            combinations = combinations + 1
-                if len(item_pos) > 4:
+                            combinations = combinations + 3
+                if item_num > 4:
                     if not self.valid_position(item_pos[4][0], item_pos[4][1]):
                         continue
                     play_other = self.game.slot_calculator_dia(self.play_pos, item_pos[4][1], item_pos[4][0])
                     play_first = self.game.slot_calculator_dia(self.play_pos, col_index, row_index)
                     self.game.swap_item(play_other, play_first)
-                    combinations = combinations + 1
+                    combinations = combinations + 3
+                if item_num > 5:
+                    combinations = combinations + (item_num - 3 + 2)
+                    
 
         if ticket_pos is not None:
             row, col = ticket_pos
@@ -334,7 +338,7 @@ class FMV_arrange:
 
         time.sleep(1)
         pyautogui.moveTo(self.game.box.x, self.game.box.y)
-        pyautogui.click(clicks = combinations * 3)
+        pyautogui.click(clicks = combinations)
         if combinations == 0:
             self.stop_flag = True
 
