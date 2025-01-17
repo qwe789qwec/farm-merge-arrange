@@ -97,11 +97,10 @@ class FMV_arrange:
         return result
 
     def run_arrange2(self):
-        self.game.screen_slider(-self.game.slot_gap_y*((2.3*2)-1))
+        self.game.screen_slider(-self.game.slot_gap_y*((config.SIZE['scan_step']*2)-1))
         self.play_pos = self.game.get_play_initial_position()
         directions = [(0, -1), (-1, 0), (1, 0), (0, 1)]
         visited = set()
-        item_count = 0
         self.limit = config.BASIC['farm_size']
         for row_index, row in enumerate(self.items):
             if row_index == 2 or row_index == 3:
@@ -118,14 +117,13 @@ class FMV_arrange:
                 item_pos = self.get_position(self.items, row_index, col_index)
                 if len(item_pos) == 0:
                     continue
-                connected_item = self.find_connected_elements(row_index, col_index)
-                item_count = len(connected_item)
-                for position in connected_item:
-                    visited.add(position)
 
                 for position in item_pos:
                     item_row, item_col = position
-                    if item_count >= 5:
+                    connected_item = self.find_connected_elements(row_index, col_index)
+                    for position in connected_item:
+                        visited.add(position)
+                    if len(connected_item) >= 5:
                         break
                     if not self.valid_position(item_row, item_col):
                         continue
@@ -140,15 +138,6 @@ class FMV_arrange:
                         if self.items[next_row][next_col] == item:
                             visited.add((next_row, next_col))
                             continue
-                        # try:
-                        #     if self.items[next_row][next_col] == item:
-                        #         visited.add((next_row, next_col))
-                        #         continue
-                        # except IndexError:
-                        #     print("row: ", next_row, "col: ", next_col)
-                        #     break
-                        # print("swap item:", self.items[item_row][item_col], "to:", self.items[next_row][next_col])
-                        # print("swap item from: ", item_row, item_col, "to: ", next_row, next_col)
                         play_next = self.game.slot_calculator_dia(self.play_pos, next_col, next_row)
                         play_from = self.game.slot_calculator_dia(self.play_pos, item_col, item_row)
                         self.game.swap_item(play_from, play_next)
@@ -156,7 +145,6 @@ class FMV_arrange:
                         self.items[item_row][item_col] = self.items[next_row][next_col]
                         self.items[next_row][next_col] = swap_item
                         visited.add((next_row, next_col))
-                        item_count = item_count + 1
                         break
  
         if not config.BASIC['auto_combine']:
@@ -168,7 +156,7 @@ class FMV_arrange:
 
     
     def run_arrange(self):
-        self.game.screen_slider(-self.game.slot_gap_y*((2.3*2)-1))
+        self.game.screen_slider(-self.game.slot_gap_y*((config.SIZE['scan_step']*2)-1))
         self.play_pos = self.game.get_play_initial_position()
         self.print_items()
         move_times = 0
@@ -300,11 +288,11 @@ class FMV_arrange:
                 if (row_index, col_index) in visited:
                     continue
                 item_pos = self.find_connected_elements(row_index, col_index)
-                for position in item_pos:
-                    visited.add(position)
                 item_num = len(item_pos)
                 if item_num < 4:
                     continue
+                for position in item_pos:
+                    visited.add(position)
                 if item_num == 4:
                     all_item_pos = self.get_position(self.items, row_index, col_index)
                     if len(all_item_pos) > 4:
@@ -313,10 +301,12 @@ class FMV_arrange:
                                 continue
                             if not self.valid_position(position[0], position[1]):
                                 continue
+                            visited.add(position)
                             play_other = self.game.slot_calculator_dia(self.play_pos, position[1], position[0])
                             play_first = self.game.slot_calculator_dia(self.play_pos, col_index, row_index)
                             self.game.swap_item(play_other, play_first)
                             combinations = combinations + 3
+                            break
                 if item_num > 4:
                     if not self.valid_position(item_pos[4][0], item_pos[4][1]):
                         continue

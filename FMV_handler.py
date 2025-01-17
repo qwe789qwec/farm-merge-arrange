@@ -178,6 +178,10 @@ class FMV_handler:
         # slot_matrix = np.full((17, 3), -1)
         self.init_screen_position()
         self.screen_slider(self.slot_gap_y*config.SIZE['init_scan_position'])
+        if self.click_item("buttons/item_ticket.png", retry=1):
+            pyautogui.moveTo(self.box.x, self.box.y)
+            pyautogui.click()
+            time.sleep(2)
 
         for i in range(0, (len(self.farm_shape1)), 3):
             light_pos = self.get_item_position(region=self.game_area, item_name=config.BASIC['slot_ref'])
@@ -193,7 +197,11 @@ class FMV_handler:
                     slot_img = game_image[slot_region.y:slot_region.y + self.slot_size.h, slot_region.x:slot_region.x + self.slot_size.w]
                     self.save_image(slot_img, temp_dir)
             if i < len(self.farm_shape1)-3:
-                self.screen_slider(self.slot_gap_y*2.3)
+                self.screen_slider(self.slot_gap_y * config.SIZE['scan_step'])
+                if self.click_item("buttons/item_ticket.png", retry=1):
+                    pyautogui.moveTo(self.box.x, self.box.y)
+                    pyautogui.click()
+                    time.sleep(2)
 
     def compare_slot_image(self):
         # load images

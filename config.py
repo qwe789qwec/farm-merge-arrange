@@ -29,6 +29,7 @@ RELATIVE = {
 
 SIZE = {
     'init_scan_position': 1.7,
+    'scan_step': 2.3,
     'game_width': 1500, #(1500, 700)
     'game_height': 800,
     'item_width': 60, #(60, 60)
