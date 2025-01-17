@@ -97,7 +97,6 @@ class FMV_arrange:
         return result
 
     def run_arrange2(self):
-        self.game.screen_slider(-self.game.slot_gap_y*((config.SIZE['scan_step']*2)-1))
         self.play_pos = self.game.get_play_initial_position()
         directions = [(0, -1), (-1, 0), (1, 0), (0, 1)]
         visited = set()
@@ -111,7 +110,7 @@ class FMV_arrange:
                 if not self.valid_position(row_index, col_index):
                     continue
                 if item <= -2 or (item >= 0 and (item % 5 == 4 or item % 5 == 0)):
-                    # print("stop item: ", item)
+                    print("stop item: ", item)
                     self.stop_flag = True
                     break
                 item_pos = self.get_position(self.items, row_index, col_index)
@@ -149,6 +148,7 @@ class FMV_arrange:
  
         if not config.BASIC['auto_combine']:
             self.stop_flag = True
+            print("no set combine")
         else:
             self.arrange_flag = True
             self.game.rebuild_tempfile()
@@ -215,6 +215,7 @@ class FMV_arrange:
 
         if not config.BASIC['auto_combine']:
             self.stop_flag = True
+            print("no set combine")
         else:
             self.arrange_flag = True
             self.game.rebuild_tempfile()
@@ -266,20 +267,21 @@ class FMV_arrange:
         pyautogui.click(clicks = combinations * 3)
         if combinations == 0:
             self.stop_flag = True
+            print("no combine")
 
-    def run_combine2(self):
+    def run_combine2(self, move = True):
         combinations = 0
-        self.game.screen_slider(-(self.game.slot_gap_y*2))
         self.play_pos = self.game.get_play_initial_position()
         count = 0
         self.limit = config.BASIC['farm_size']
         visited = set()
         ticket_pos = None
         for row_index, row in enumerate(self.items):
-            if row_index == 2 or row_index == 3:
-                self.game.screen_slider(self.game.slot_gap_y)
-                self.play_pos = self.game.get_play_initial_position()
-                self.limit = self.limit + 2.5
+            if move:
+                if row_index == 2 or row_index == 3:
+                    self.game.screen_slider(self.game.slot_gap_y)
+                    self.play_pos = self.game.get_play_initial_position()
+                    self.limit = self.limit + 2.5
             for col_index, item in enumerate(row):
                 if item == 200:
                     ticket_pos = (row_index, col_index)
@@ -316,7 +318,6 @@ class FMV_arrange:
                     combinations = combinations + 3
                 if item_num > 5:
                     combinations = combinations + (item_num - 3 + 2)
-                    
 
         if ticket_pos is not None:
             row, col = ticket_pos
@@ -331,6 +332,8 @@ class FMV_arrange:
         pyautogui.click(clicks = combinations)
         if combinations == 0:
             self.stop_flag = True
+            print("no combine")
+        return combinations
 
     def run_train(self, times = config.TRAIN['times']):
         run_times = 0

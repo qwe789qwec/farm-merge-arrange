@@ -175,14 +175,6 @@ class FMV_handler:
         return position(self.game_area_pos.x + pos.x, self.game_area_pos.y + pos.y)
     
     def capture_slot(self):
-        # slot_matrix = np.full((17, 3), -1)
-        self.init_screen_position()
-        self.screen_slider(self.slot_gap_y*config.SIZE['init_scan_position'])
-        if self.click_item("buttons/item_ticket.png", retry=1):
-            pyautogui.moveTo(self.box.x, self.box.y)
-            pyautogui.click()
-            time.sleep(2)
-
         for i in range(0, (len(self.farm_shape1)), 3):
             light_pos = self.get_item_position(region=self.game_area, item_name=config.BASIC['slot_ref'])
             relative_scan = position(light_pos.x + self.slot_relative.x, light_pos.y + self.slot_relative.y)
@@ -201,7 +193,7 @@ class FMV_handler:
                 if self.click_item("buttons/item_ticket.png", retry=1):
                     pyautogui.moveTo(self.box.x, self.box.y)
                     pyautogui.click()
-                    time.sleep(2)
+                    time.sleep(1)
 
     def compare_slot_image(self):
         # load images
