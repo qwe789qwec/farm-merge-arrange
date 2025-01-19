@@ -143,7 +143,6 @@ class FMV_arrange:
                         self.items[item_row][item_col] = self.items[next_row][next_col]
                         self.items[next_row][next_col] = swap_item
                         visited.add((next_row, next_col))
-                        time.sleep(3)
                         break
  
         if not config.BASIC['auto_combine']:
