@@ -17,7 +17,7 @@ while True:
         arrange.game.screen_slider(arrange.game.slot_gap_y*config.SIZE['init_scan_position'])
         arrange.scan_slot()
         arrange.print_items()
-        arrange.game.screen_slider(-arrange.game.slot_gap_y*((config.SIZE['scan_step']*2))+1)
+        arrange.game.screen_slider(-arrange.game.slot_gap_y*((config.SIZE['scan_step']*2)-1))
         # if config.BASIC['auto_combine']:
         #     if arrange.run_combine2(move = False) > 0:
         #         arrange.game.rebuild_tempfile()
