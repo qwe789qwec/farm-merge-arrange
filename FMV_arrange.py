@@ -88,12 +88,11 @@ class FMV_arrange:
 
             for dr, dc in directions:
                 new_row, new_col = current_row + dr, current_col + dc
-                if (new_row != 0 or new_col != 0):
-                    if (self.valid_position(new_row, new_col) and
-                        (new_row, new_col) not in visited):
-                        if self.items[new_row][new_col] == target_value:
-                            queue.append((new_row, new_col))
-                            visited.add((new_row, new_col))
+                if (self.valid_position(new_row, new_col) and
+                    (new_row, new_col) not in visited):
+                    if self.items[new_row][new_col] == target_value:
+                        queue.append((new_row, new_col))
+                        visited.add((new_row, new_col))
         return result
 
     def run_arrange2(self):
@@ -144,6 +143,7 @@ class FMV_arrange:
                         self.items[item_row][item_col] = self.items[next_row][next_col]
                         self.items[next_row][next_col] = swap_item
                         visited.add((next_row, next_col))
+                        time.sleep(3)
                         break
  
         if not config.BASIC['auto_combine']:
