@@ -1,5 +1,5 @@
 # FMV Farm Merge Valley auto arrange Guide
-Currently still in testing. This is the test [video](https://www.youtube.com/watch?v=c2oZA5ccOqs).  
+Currently still in testing. This is the test [video](https://youtu.be/IMVAUjE74y4).  
 This guide provides instructions on how to set up and troubleshoot the FMV_arrange.py script. Follow the steps below to ensure proper functionality.
 ## Installation and Initial Setup
 1. Download and Install [python](https://www.python.org/)
@@ -55,6 +55,7 @@ This guide provides instructions on how to set up and troubleshoot the FMV_arran
 
 Follow these steps carefully to ensure a smooth setup and operation. If you have any questions or need further assistance, don’t hesitate to reach out!
 
+範例測試[影片](https://youtu.be/IMVAUjE74y4)
 ## 如何安裝
 1. 請先下載並安裝 [python](https://www.python.org/)
 2. 建立虛擬環境（可選但建議）:
